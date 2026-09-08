@@ -1,0 +1,1516 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#173C35">
+<title>Safe2Spend MVP 1.5.2</title>
+<style>
+:root{
+ --bg:#F4F7F5;--card:#FFFFFF;--ink:#17302C;--muted:#667A73;--line:#DDE7E2;
+ --green:#2B9B70;--green-dark:#207957;--green-soft:#E8F6EF;--mint:#DDF3E8;
+ --blue:#5477D9;--blue-soft:#EEF3FF;--sand:#FFF4DE;--amber:#A06514;
+ --rose:#FDEDEF;--red:#A83A43;--shadow:0 12px 34px rgba(23,48,44,.08);
+}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#F7FAF8 0%,#F3F6F4 100%);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+button,input,select{font:inherit}.app{max-width:580px;margin:auto;padding:18px 16px 108px}
+.top,.section,.spread{display:flex;align-items:center;justify-content:space-between;gap:12px}.top{margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:11px}.logo{width:44px;height:44px;border-radius:15px;background:linear-gradient(145deg,#173C35,#27664F);color:#fff;display:grid;place-items:center;font-weight:950;box-shadow:0 8px 20px rgba(23,60,53,.18)}.brand h1{font-size:21px;margin:0}.brand small,.muted{color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.hero{background:linear-gradient(150deg,#173C35 0%,#215B48 58%,#2B7A5D 100%);color:#fff;padding:22px;overflow:hidden;position:relative}
+.hero:after{content:"";position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.07);right:-55px;top:-55px}
+.kicker{text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:900;opacity:.75}.hero h2{font-size:15px;opacity:.85;margin:8px 0 4px}.big{font-size:54px;font-weight:950;letter-spacing:-.05em;line-height:1}.hero-line{display:flex;justify-content:space-between;gap:12px;color:#E1EEE9;margin-top:12px}.pills{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}.pill{background:rgba(255,255,255,.10);padding:8px 10px;border-radius:999px;font-size:12px;font-weight:850}
+.primary,.secondary,.ghost,.danger{border:0;border-radius:15px;padding:14px 15px;font-weight:900;min-height:46px}.primary{background:var(--green);color:#fff}.primary:hover{background:var(--green-dark)}.secondary{background:var(--blue-soft);color:#3E55A5}.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}.danger{background:var(--rose);color:var(--red)}.full{width:100%}
+.advisor{background:linear-gradient(145deg,#EEF4FF,#FBFCFF);border-color:#D8E2FF}.ahead{display:flex;align-items:center;gap:10px}.aidot{width:35px;height:35px;border-radius:12px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900}.advisor h3,.section h3{margin:0;font-size:17px}.advisor p{color:#3F4B5F;line-height:1.5;font-size:14px;margin:8px 0 0}
+.snapshot{display:grid;grid-template-columns:1fr 1fr;gap:10px}.snap{border:1px solid var(--line);border-radius:19px;padding:14px;background:#fff}.snap small{color:var(--muted)}.snap strong{display:block;font-size:23px;margin-top:4px}
+.payday{background:linear-gradient(145deg,#ECF9F2,#F9FFFC);border-color:#CFECDD}.payday h2{margin:5px 0 0;font-size:27px}.payday .flow{margin:14px 0 0}.flow-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 0;border-top:1px solid rgba(43,155,112,.14)}.flow-row:first-child{border-top:0}.flow-row span{color:#45665A}.flow-row strong{font-size:17px}.safe-row{margin-top:10px;background:#fff;border:1px solid #CFECDD;border-radius:18px;padding:14px}.safe-row strong{font-size:28px;color:var(--green-dark)}
+.bucket-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.bucket{border:1px solid var(--line);border-radius:18px;padding:14px;min-width:0}.bucket .icon{font-size:20px}.bucket strong{display:block;font-size:20px;margin:6px 0 2px}.bucket small{color:var(--muted);line-height:1.35}
+.bar{height:9px;background:#E8EFEB;border-radius:999px;overflow:hidden;margin:9px 0}.bar>div{height:100%;background:var(--green);border-radius:999px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.row:last-child{border-bottom:0}.meta{display:flex;flex-direction:column;gap:3px;min-width:0}.meta small{color:var(--muted)}.amt{font-weight:900;text-align:right}
+.planstep{border-left:4px solid var(--mint);padding:0 0 0 13px;margin:14px 0}.planstep h4{margin:0 0 4px;font-size:15px}.planstep p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}
+.cycle{border:1px solid var(--line);border-radius:19px;padding:14px;margin-top:10px}.cycle-top{display:flex;justify-content:space-between;gap:10px;align-items:start}.cycle h4{margin:0}.cycle .result{font-weight:950;font-size:20px}.event{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:8px 0;border-top:1px solid var(--line)}.event:first-child{border-top:0}.in{color:#14704E}.out{color:#8F4040}
+.forecast-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.forecast{border:1px solid var(--line);border-radius:18px;padding:14px}.forecast strong{display:block;font-size:22px;margin:4px 0}.forecast small{color:var(--muted)}
+.nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:min(550px,calc(100% - 24px));display:grid;grid-template-columns:repeat(4,1fr);padding:8px;background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:22px;box-shadow:0 15px 38px rgba(15,23,42,.14);z-index:10}.nav button{border:0;background:transparent;padding:10px;border-radius:14px;color:var(--muted);font-size:11px;font-weight:900}.nav .active{background:#173C35;color:#fff}.screen{display:none}.screen.active{display:block}
+.modal{display:none;position:fixed;inset:0;background:rgba(10,18,31,.55);align-items:flex-end;justify-content:center;z-index:180}.modal.open{display:flex}.sheet{width:min(580px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:28px 28px 0 0;padding:18px 16px 30px}.handle{width:45px;height:5px;background:#D8E1DD;border-radius:99px;margin:0 auto 18px}.sheet h2{font-size:26px;margin:5px 0}.sheet>p{color:var(--muted);line-height:1.45}
+.field{margin:13px 0}.field label{display:block;font-size:13px;font-weight:850;margin-bottom:6px}.input{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:15px;padding:0 12px;background:#fff}.input input,.input select{width:100%;border:0;outline:0;padding:14px 7px;font-size:16px;font-weight:800;background:transparent;min-width:0}.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.onboard{position:fixed;inset:0;background:linear-gradient(180deg,#F8FBF9,#F2F6F4);z-index:50;overflow:auto}.onboard.hide{display:none}.onwrap{max-width:580px;margin:auto;padding:22px 16px 38px}.onstep{display:none}.onstep.active{display:block}.onstep h2{font-size:31px;line-height:1.08;margin-bottom:8px}.onstep p{line-height:1.5}.onprog{height:7px;background:#E3ECE7;border-radius:99px;margin:22px 0}.onprog div{height:100%;background:var(--green);border-radius:99px}
+.choice{border:1.5px solid var(--line);background:#fff;border-radius:18px;padding:14px;margin:8px 0;text-align:left;width:100%}.choice.active{border-color:var(--green);background:var(--green-soft)}.choice small{color:var(--muted)}
+.billcard{border:1px solid var(--line);border-radius:19px;padding:14px;margin:10px 0;background:#fff}.billcard .grid{display:grid;grid-template-columns:1fr 110px;gap:8px}.billcard .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.quick button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px;text-align:left;font-weight:850}
+.notice{background:var(--sand);color:#744600;border-radius:16px;padding:13px;line-height:1.45;font-size:13px}.verdict{border-radius:20px;padding:16px;margin-top:15px}.verdict.safe{background:var(--green-soft);color:#126747}.verdict.mid{background:var(--sand);color:#7B4B00}.verdict.no{background:var(--rose);color:#842929}.verdict h3{font-size:24px;margin:5px 0}.mini{font-size:12px;color:var(--muted);line-height:1.45}.empty{text-align:center;color:var(--muted);padding:16px}
+
+.s2s-bubble{background:radial-gradient(circle at 78% 18%,#77D7AD 0,rgba(119,215,173,.24) 18%,transparent 19%),linear-gradient(150deg,#1C5A45 0%,#2A9B70 58%,#49B98B 100%);color:#fff;border:none;padding:23px;position:relative;overflow:hidden}
+.s2s-bubble .label{font-size:12px;font-weight:900;letter-spacing:.11em;text-transform:uppercase;opacity:.82}
+.s2s-bubble .s2s-value{font-size:58px;font-weight:950;letter-spacing:-.055em;line-height:1;margin:8px 0 6px}
+.s2s-bubble .sub{color:#E4F6EE;font-size:14px;line-height:1.45;max-width:390px}
+.s2s-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.s2s-actions button{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.13);color:#fff;border-radius:15px;padding:12px 8px;font-weight:900;min-height:48px}
+.s2s-actions button:active{transform:scale(.99)}
+.activity-item{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.activity-item:last-child{border-bottom:0}.activity-item small{color:var(--muted)}.activity-item strong{white-space:nowrap}
+.s2s-note{margin-top:12px;background:rgba(255,255,255,.10);padding:10px 12px;border-radius:14px;font-size:12px;color:#EAF7F1;line-height:1.4}
+
+.ahead-hero{background:linear-gradient(150deg,#F0F9F5,#FBFEFC);border-color:#CFE8DB}
+.ahead-hero h2{font-size:28px;margin:6px 0 7px}.ahead-hero p{margin:0;color:#527067;line-height:1.5}
+.week-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}
+.week-summary .mini-card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:13px}
+.week-summary small{color:var(--muted)}.week-summary strong{display:block;font-size:21px;margin-top:4px}
+.outlook-card{border:1px solid var(--line);border-radius:21px;padding:15px;margin-top:11px;background:#fff}
+.outlook-card.current{border-color:#BBDDCB;background:linear-gradient(145deg,#FBFFFD,#F2FBF6)}
+.outlook-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.outlook-head h4{margin:0;font-size:16px}.outlook-head small{color:var(--muted)}
+.status{display:inline-flex;align-items:center;padding:6px 9px;border-radius:999px;font-size:11px;font-weight:900;white-space:nowrap}
+.status.good{background:var(--green-soft);color:#176848}.status.watch{background:var(--sand);color:#7A4A00}.status.tight{background:var(--rose);color:#883038}
+.outlook-money{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.outlook-money>div{background:#F7FAF8;border-radius:14px;padding:10px;min-width:0}
+.outlook-money small{display:block;color:var(--muted);font-size:11px}.outlook-money strong{display:block;font-size:17px;margin-top:3px}
+.week-event{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+.week-event:first-child{border-top:0}.week-event .when{color:var(--muted);font-size:11px}
+.reserve-chip{display:inline-flex;align-items:center;gap:5px;background:#EEF6FF;color:#425E9B;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:850}
+.advisor-callout{background:linear-gradient(145deg,#EEF3FF,#FBFCFF);border:1px solid #D9E2FF;border-radius:20px;padding:16px}
+.advisor-callout h3{margin:0 0 7px;font-size:17px}.advisor-callout p{margin:0;color:#43506A;line-height:1.5;font-size:14px}
+.lookahead-metric{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.lookahead-metric:first-child{border-top:0}.lookahead-metric span{color:var(--muted)}.lookahead-metric strong{text-align:right}
+
+.planner-hero{background:linear-gradient(150deg,#163F36 0%,#23694F 58%,#45A67C 100%);color:#fff;border:none;overflow:hidden;position:relative}
+.planner-hero:after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;right:-80px;top:-90px;background:rgba(255,255,255,.08)}
+.planner-hero .kicker{color:#DDF4E8;opacity:.9}.planner-hero h2{font-size:30px;margin:6px 0}.planner-hero p{color:#E6F3ED;line-height:1.5;margin:0;max-width:470px}
+.planner-now{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;position:relative;z-index:1}
+.planner-now>div{background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:12px;min-width:0}
+.planner-now small{display:block;color:#D8ECE3;font-size:11px}.planner-now strong{display:block;font-size:20px;margin-top:4px}
+.planner-glance{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.glance{border:1px solid var(--line);border-radius:18px;padding:14px;background:#fff}
+.glance small{color:var(--muted);display:block}.glance strong{font-size:22px;display:block;margin-top:4px}.glance .hint{font-size:11px;color:var(--muted);margin-top:3px}
+.week-card{border:1px solid var(--line);border-radius:22px;margin-top:12px;background:#fff;overflow:hidden}
+.week-card.focus{border-color:#B6DFC9;box-shadow:0 10px 28px rgba(43,155,112,.08)}
+.week-top{padding:15px 15px 12px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.week-top h4{font-size:17px;margin:0}.week-top small{color:var(--muted)}
+.week-status{padding:6px 9px;border-radius:999px;font-size:11px;font-weight:900;white-space:nowrap}
+.week-status.good{background:var(--green-soft);color:#176848}.week-status.watch{background:var(--sand);color:#7B4B00}.week-status.tight{background:var(--rose);color:#8C3038}
+.week-balance{background:#F6FAF8;padding:12px 15px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.week-balance small{display:block;color:var(--muted);font-size:10px}.week-balance strong{display:block;font-size:17px;margin-top:3px}
+.timeline{padding:4px 15px 8px}
+.timeline-item{display:grid;grid-template-columns:52px 1fr auto;gap:9px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.timeline-item:first-child{border-top:0}.timeline-date{font-size:11px;color:var(--muted);font-weight:800}.timeline-main strong{display:block;font-size:13px}.timeline-main small{color:var(--muted)}.timeline-amt{font-weight:900}
+.plan-strip{margin:0 15px 13px;border-radius:16px;background:#EEF8F2;padding:12px}
+.plan-strip .spread{font-size:13px}.plan-strip .spread+.spread{margin-top:7px}.plan-strip span{color:#4D675E}.plan-strip strong{font-size:14px}
+.reserve-breakdown{padding:0 15px 14px}
+.reserve-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:12px}.reserve-row:first-child{border-top:0}.reserve-row small{color:var(--muted)}
+.planner-advice{background:linear-gradient(145deg,#EEF3FF,#FBFCFF);border-color:#D8E2FF}
+.planner-advice h3{margin:0}.planner-advice p{color:#43506A;line-height:1.5;margin:7px 0 0}
+.planner-positive{background:linear-gradient(145deg,#EAF8F0,#FAFFFC);border-color:#CDEBD9}.planner-positive h3{margin:0}.planner-positive p{color:#45685B;line-height:1.5}
+@media(max-width:410px){.planner-now{grid-template-columns:1fr 1fr}.planner-glance{grid-template-columns:1fr 1fr}.week-balance{grid-template-columns:1fr 1fr}}
+
+@media(max-width:410px){.outlook-money{grid-template-columns:1fr 1fr}.week-summary{grid-template-columns:1fr 1fr}}
+
+@media(max-width:410px){.s2s-actions{grid-template-columns:1fr}.s2s-bubble .s2s-value{font-size:50px}}
+
+@media(max-width:410px){.snapshot,.two,.billcard .grid,.billcard .grid2{grid-template-columns:1fr}.bucket-grid{grid-template-columns:1fr}.big{font-size:46px}.forecast-grid{grid-template-columns:1fr 1fr}}
+
+/* ===== MVP 1.5 — Clarity ===== */
+:root{--cream:#FCFDFB;--teal:#245F4D;--teal2:#3D9D76;--lav:#F3F5FF;--lavline:#DCE3FF}
+.card.compact{padding:15px;border-radius:22px}
+.soft-card{background:linear-gradient(145deg,#FBFEFC,#F4FAF7);border-color:#D7EAE0}
+.answer-first{font-size:14px;line-height:1.5;color:#435D55;margin:7px 0 0}
+.answer-first strong{color:var(--ink)}
+.money-story{background:linear-gradient(145deg,#F2FBF6,#FBFFFD);border-color:#CEE9DA}
+.money-story h2{margin:4px 0 2px;font-size:25px}
+.money-bar{display:flex;height:44px;border-radius:14px;overflow:hidden;margin:15px 0 9px;background:#EAF1ED;border:1px solid #D6E5DE}
+.money-seg{border:0;min-width:28px;padding:0 7px;color:#fff;font-size:10px;font-weight:950;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;cursor:pointer}
+.money-seg.bills{background:#4E6F9B}.money-seg.life{background:#62A69A}.money-seg.save{background:#7D9C67}.money-seg.yours{background:#22946B}
+.money-legend{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px}
+.money-legend button{border:1px solid var(--line);background:#fff;border-radius:13px;padding:9px 6px;text-align:left;min-width:0}
+.money-legend small{display:block;color:var(--muted);font-size:9px}.money-legend strong{display:block;font-size:13px;margin-top:2px}
+.job-explain{margin-top:10px;border-radius:14px;background:#fff;border:1px solid var(--line);padding:11px 12px;color:#4C625A;font-size:12px;line-height:1.45}
+.disclosure{margin-top:10px}.disclosure-btn{width:100%;border:0;background:#F3F7F5;color:#466158;border-radius:14px;padding:11px 12px;font-weight:900;display:flex;justify-content:space-between;align-items:center}
+.disclosure-body{display:none;padding:8px 2px 0}.disclosure.open .disclosure-body{display:block}.disclosure.open .chev{transform:rotate(180deg)}.chev{transition:.2s}
+.now-card{display:grid;grid-template-columns:1fr 1fr;gap:8px}.now-stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}.now-stat small{color:var(--muted)}.now-stat strong{display:block;font-size:21px;margin-top:3px}
+.change-card{display:none;background:linear-gradient(145deg,#F5F7FF,#FCFDFF);border-color:#DCE3FF}.change-card.show{display:block}.change-line{display:flex;gap:11px;align-items:flex-start}.change-icon{width:34px;height:34px;flex:0 0 34px;border-radius:11px;background:#6078D8;color:#fff;display:grid;place-items:center;font-weight:950}.change-card h3{margin:0;font-size:16px}.change-card p{margin:5px 0 0;color:#566078;font-size:13px;line-height:1.45}
+.goal-card{background:linear-gradient(145deg,#FFFDF7,#FAFFF9);border-color:#E8E2CC}
+.goal-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.goal-head h3{margin:0}.goal-percent{background:#EAF6EF;color:#1E7555;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:950}
+.goal-progress{height:10px;background:#E9EFEA;border-radius:99px;overflow:hidden;margin:11px 0}.goal-progress>div{height:100%;background:linear-gradient(90deg,#53AD82,#268D69);border-radius:99px}
+.goal-details{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted)}
+.select-inline{margin-top:11px;display:flex;align-items:center;gap:8px}.select-inline label{font-size:12px;font-weight:850;color:#4F655D}.select-inline select{flex:1;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px;font-weight:850;color:var(--ink)}
+.payday-badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 9px;background:#DDF4E8;color:#1B6F51;font-size:11px;font-weight:950;margin-top:7px}
+.payday-celebrate{background:linear-gradient(145deg,#153F35,#267252);color:#fff;border:none}.payday-celebrate .muted{color:#D9ECE4}.payday-celebrate .money-story h2,.payday-celebrate h2{color:#fff}
+.planner-hero15{background:linear-gradient(150deg,#153D34 0%,#22664D 62%,#49AB81 100%);color:#fff;border:none;overflow:hidden;position:relative}
+.planner-hero15:after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;right:-80px;top:-90px;background:rgba(255,255,255,.08)}
+.planner-hero15 h2{margin:5px 0;font-size:29px}.planner-hero15 p{margin:0;color:#DDEFE7;line-height:1.45;max-width:470px}
+.planner-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 1px 10px;scrollbar-width:none}.planner-strip::-webkit-scrollbar{display:none}
+.week-chip{flex:0 0 132px;border:1px solid var(--line);background:#fff;border-radius:17px;padding:11px;text-align:left}
+.week-chip.active{background:#173F35;color:#fff;border-color:#173F35}.week-chip small{display:block;color:var(--muted);font-size:10px}.week-chip.active small{color:#CFE5DC}.week-chip strong{display:block;font-size:15px;margin:3px 0}.week-chip .chip-s2s{font-size:11px;font-weight:900}
+.week-detail{border:1px solid var(--line);border-radius:22px;overflow:hidden;background:#fff}
+.week-detail-head{padding:16px;background:linear-gradient(145deg,#F7FBF9,#FFFFFF)}.week-detail-head h3{margin:0;font-size:20px}.week-detail-head p{margin:5px 0 0;color:var(--muted);font-size:12px}
+.week-answer{padding:14px 16px;background:#EEF8F2;border-top:1px solid #D5EBDD}.week-answer strong{font-size:22px;color:#1E7857}.week-answer p{margin:4px 0 0;color:#50695F;font-size:12px;line-height:1.45}
+.week-simple{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:13px 16px}.week-simple div{background:#F7FAF8;border-radius:14px;padding:10px}.week-simple small{display:block;color:var(--muted);font-size:10px}.week-simple strong{display:block;font-size:16px;margin-top:3px}
+.timeline15{padding:4px 16px 9px}.timeline15 .timeline-item{grid-template-columns:48px 1fr auto}
+.detail-grid{padding:0 16px 15px}.plain-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:13px}.plain-row:first-child{border-top:0}.plain-row span{color:#536B62}.plain-row strong{text-align:right}
+.planner-callout{background:linear-gradient(145deg,#EFF4FF,#FCFDFF);border-color:#D8E2FF}
+.planner-callout p{margin:7px 0 0;color:#46526A;line-height:1.5;font-size:13px}
+.planner-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px}.planner-summary>div{border:1px solid var(--line);border-radius:16px;background:#fff;padding:12px}.planner-summary small{display:block;color:var(--muted)}.planner-summary strong{display:block;font-size:19px;margin-top:3px}
+.compact-list .row{padding:10px 0}
+.smart-add{border:1px dashed #C8D9D0;background:#FAFCFB;border-radius:15px;padding:11px 12px;color:#4E665D;font-size:12px;line-height:1.4}
+.hint-pill{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#526A61;padding:5px 8px;font-size:10px;font-weight:850}
+@media(max-width:410px){
+ .money-legend{grid-template-columns:1fr 1fr}.week-simple{grid-template-columns:1fr 1fr}.planner-summary{grid-template-columns:1fr 1fr}
+ .money-seg{font-size:9px}.now-card{grid-template-columns:1fr 1fr}
+}
+
+
+/* MVP 1.5.2 — Bill capture clarity */
+.bill-entry-shell{margin-top:12px}.bill-type-field{margin:0}.bill-composer{display:none;margin-top:10px;border:1px solid #CFE0D7;border-radius:18px;background:linear-gradient(145deg,#FFFFFF,#F8FBF9);padding:14px;box-shadow:0 8px 24px rgba(28,72,57,.05)}.bill-composer.open{display:block}.composer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.composer-title{display:flex;align-items:center;gap:10px}.bill-icon{width:38px;height:38px;border-radius:12px;background:#EEF6F2;display:grid;place-items:center;font-size:19px;flex:0 0 38px}.composer-title strong{display:block;font-size:15px}.composer-title small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.composer-cancel{border:0;background:transparent;color:var(--muted);font-weight:850;padding:7px 4px}.composer-actions{display:grid;grid-template-columns:1fr;gap:7px;margin-top:5px}.composer-help{font-size:10px;color:var(--muted);line-height:1.4}.composer-error{min-height:17px;color:#A14949;font-size:10px;font-weight:800;margin-top:5px}.duplicate-note{display:none;margin:7px 0 0;padding:9px 10px;border-radius:11px;background:#FFF8E8;color:#755D25;font-size:10px;line-height:1.4}.duplicate-note.show{display:block}.bill-add-status{min-height:20px;margin-top:7px;color:#267858;font-size:11px;font-weight:850}
+.bill-stack{margin-top:10px;border:1px solid var(--line);border-radius:18px;background:#fff;overflow:hidden}.bill-stack-head{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;background:#F5F9F7;border-bottom:1px solid var(--line);gap:12px}.bill-stack-head strong{display:block;font-size:13px}.bill-stack-head small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.bill-stack-head>small{margin:0;white-space:nowrap}
+.bill-item{border-top:1px solid var(--line)}.bill-item:first-child{border-top:0}.bill-summary-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:11px 13px}.bill-number{width:27px;height:27px;border-radius:999px;background:#EEF3FF;color:#506EC5;display:grid;place-items:center;font-size:11px;font-weight:950}.bill-main{min-width:0;display:flex;align-items:center;gap:9px;cursor:pointer}.bill-main .bill-icon{width:32px;height:32px;flex-basis:32px;border-radius:10px;font-size:16px}.bill-copy{min-width:0}.bill-row-name{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bill-row-detail{display:block;color:var(--muted);font-size:10px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bill-edit-btn{border:0;background:#EAF6EF;color:#267858;border-radius:999px;padding:7px 11px;font-size:10px;font-weight:950;min-height:0}.bill-editor{display:none;padding:12px 13px 13px;background:#FAFCFB;border-top:1px solid var(--line)}.bill-editor.open{display:block}.bill-editor .field{margin-bottom:8px}.bill-editor .field label{font-size:10px}.bill-editor-actions{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.bill-delete{border:0;background:transparent;color:#A14C4C;font-weight:850;padding:10px;font-size:11px}.bill-empty{padding:18px;text-align:center;color:var(--muted);font-size:12px}.bill-saved-note{font-size:10px;color:var(--muted);margin:0 0 9px}.bill-other-name{display:none}.bill-other-name.show{display:block}
+@media(max-width:410px){.bill-summary-row{grid-template-columns:auto 1fr auto}.bill-editor-actions{grid-template-columns:1fr}.bill-delete{width:100%}}
+
+/* MVP 1.5.2 Update #2 — welcoming calculator-first opening */
+.onboard-brandline{font-size:13px;color:var(--muted);font-weight:650;letter-spacing:.005em}
+.opening-step{padding-bottom:8px}.opening-step h2{font-size:32px;letter-spacing:-.035em;max-width:520px;margin-top:24px}.opening-lead{font-size:16px;color:var(--muted);margin:0 0 20px;max-width:500px}
+.start-card{background:linear-gradient(145deg,#FFFFFF,#F8FCFA);border:1px solid #D9E7E0;border-radius:24px;padding:17px;margin:18px 0 20px;box-shadow:0 10px 28px rgba(23,48,44,.055)}
+.start-card-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}.start-icon,.optional-icon,.trust-icon{display:grid;place-items:center;flex:0 0 auto}.start-icon{width:43px;height:43px;border-radius:14px;background:#E3F3EC;font-size:20px}.start-card-head strong{display:block;font-size:17px}.start-card-head small{display:block;color:var(--muted);margin-top:3px;line-height:1.35}
+.start-card .field{margin:10px 0 4px}.start-card .field label{font-size:14px}.opening-input{border-color:#CFE0D8;box-shadow:inset 0 0 0 1px rgba(43,155,112,.025)}.opening-input:focus-within{border-color:var(--green);box-shadow:0 0 0 3px rgba(43,155,112,.09)}.opening-input input{font-size:20px;padding:15px 8px}.opening-input>span{font-size:18px;color:#385A50;font-weight:750}
+.additional-head{display:flex;align-items:center;gap:8px;margin:4px 0 6px}.additional-head h3{font-size:17px;margin:0}.optional-chip{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:#60746D;background:#E9EFEC;padding:5px 8px;border-radius:999px}.additional-copy{font-size:13px;color:var(--muted);margin:0 0 10px}
+.optional-balance{border:1px solid var(--line);border-radius:18px;background:#fff;margin:8px 0;overflow:hidden;transition:border-color .2s ease,background .2s ease}.optional-balance.active{border-color:#CFE5D9;background:#FBFEFC}.optional-trigger{width:100%;border:0;background:transparent;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:11px;text-align:left;padding:13px 14px;color:var(--ink);cursor:pointer}.optional-trigger strong{display:block;font-size:14px}.optional-trigger small{display:block;color:var(--muted);font-size:11px;margin-top:2px}.optional-icon{width:36px;height:36px;border-radius:12px;background:#EEF7F2;font-size:18px}.optional-balance.savings .optional-icon{background:#FFF0F1}.optional-plus{font-size:24px;color:var(--green);font-weight:500;line-height:1}.optional-balance.active .optional-plus{transform:rotate(45deg)}.optional-body{display:none;padding:0 14px 14px 61px}.optional-balance.active .optional-body{display:block}.optional-body .field{margin:0}.optional-body .mini{margin-top:6px}.optional-remove{border:0;background:transparent;color:var(--muted);padding:9px 0 0;font-weight:800;font-size:11px;cursor:pointer}
+.trust-panel{margin:18px 0 14px;border:1px solid #D9E6F2;background:linear-gradient(145deg,#F4F8FC,#FBFDFE);border-radius:18px;padding:14px}.trust-top{display:flex;gap:11px;align-items:flex-start}.trust-icon{width:35px;height:35px;border-radius:11px;background:#E5EEF9;font-size:17px}.trust-copy strong{font-size:13px}.trust-copy p{font-size:12px;color:#516572;line-height:1.45;margin:4px 0 0}.trust-panel details{margin:8px 0 0 46px}.trust-panel summary{color:#267858;font-size:11px;font-weight:850;cursor:pointer;list-style:none}.trust-panel summary::-webkit-details-marker{display:none}.trust-panel details p{font-size:11px;color:var(--muted);line-height:1.5;margin:7px 0 0}.opening-continue{margin-top:4px;font-size:16px}.opening-continue:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:410px){.opening-step h2{font-size:29px}.start-card{padding:15px}.optional-body{padding-left:14px}.trust-panel details{margin-left:0}.onboard-brandline{font-size:12px}}
+
+
+/* MVP 1.5.2 — Update #3: Pay schedule clarity */
+.paycheck-step{padding-bottom:8px}.paycheck-step h2{font-size:32px;letter-spacing:-.035em;max-width:540px;margin-top:24px}.paycheck-lead{font-size:16px;color:var(--muted);margin:0 0 24px;max-width:520px}.pay-section{margin:18px 0 22px}.pay-section-title{display:flex;align-items:flex-start;gap:11px;margin-bottom:11px}.pay-section-title h3{font-size:18px;line-height:1.2;margin:3px 0 0}.pay-section-title p{font-size:13px;color:var(--muted);margin:4px 0 0;line-height:1.4}.step-dot{width:32px;height:32px;flex:0 0 32px;border-radius:50%;display:grid;place-items:center;background:#DDF3E9;color:#164E3C;font-size:14px;font-weight:950}.pay-frequency-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.choice.pay-choice{position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;margin:0;padding:13px 12px;border-radius:17px;min-height:76px}.pay-choice-icon{width:36px;height:36px;border-radius:11px;background:#EEF3F1;color:#164E3C;display:grid;place-items:center;font-size:16px}.pay-choice strong{display:block;font-size:14px;line-height:1.2}.pay-choice small{display:block;font-size:11px;margin-top:3px;line-height:1.25}.pay-check{width:25px;height:25px;border-radius:50%;background:var(--green);color:#fff;display:none;place-items:center;font-size:14px;font-weight:950}.pay-choice.active .pay-check{display:grid}.pay-choice.active .pay-choice-icon{background:#DDF3E9}.pay-detail-section{margin-top:20px}.pay-detail-input{margin-left:43px;min-height:50px}.pay-detail-input:focus-within{border-color:var(--green);box-shadow:0 0 0 3px rgba(43,155,112,.09)}.pay-detail-input input{font-size:16px;padding:14px 7px}.pay-input-icon{color:#164E3C;font-size:16px}.pay-amount-input>span{font-size:18px;color:#385A50;font-weight:750}.pay-hint{margin:7px 0 0 43px;color:var(--muted);font-size:11px;line-height:1.4}.pay-why{border:1px solid #D8E5F4;border-radius:18px;background:#F5F9FE;margin:24px 0 16px;overflow:hidden}.pay-why summary{list-style:none;display:grid;grid-template-columns:auto 1fr;gap:11px;align-items:start;padding:14px;cursor:pointer}.pay-why summary::-webkit-details-marker{display:none}.why-icon{width:34px;height:34px;border-radius:11px;background:#E1EDFF;color:#416FCA;display:grid;place-items:center;font-weight:950;font-family:Georgia,serif}.pay-why strong{display:block;font-size:14px}.pay-why small{display:block;color:#587084;font-size:11px;line-height:1.45;margin-top:3px}.why-more{grid-column:2;color:var(--green);font-size:11px;font-weight:900;margin-top:4px}.pay-why[open] .why-more{display:none}.pay-why>p{margin:0;padding:0 14px 14px 59px;color:#587084;font-size:11px;line-height:1.5}.pay-actions{margin-top:12px}@media(max-width:480px){.paycheck-step h2{font-size:29px}.pay-frequency-grid{grid-template-columns:1fr}.choice.pay-choice{min-height:68px}.pay-detail-input,.pay-hint{margin-left:0}.pay-section-title{margin-bottom:9px}}
+
+/* Update 3.1 — pay cadence, money fields, and Safe2Spend calendar */
+.semi-paydays{display:none;margin:12px 0 0 43px;padding:14px;border:1px solid #CFE5D9;background:#FBFEFC;border-radius:17px}
+.semi-paydays.show{display:block}.semi-paydays-head{display:flex;align-items:flex-start;gap:9px;margin-bottom:10px}.semi-paydays-head strong{font-size:13px}.semi-paydays-head small{display:block;color:var(--muted);font-size:11px;margin-top:2px;line-height:1.35}
+.semi-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.semi-grid label{display:block;font-size:11px;font-weight:850;margin:0 0 5px}.semi-grid .input select{padding:12px 5px}
+.date-display{width:100%;border:0;background:transparent;text-align:left;padding:14px 7px;font-size:16px;font-weight:800;color:var(--ink);cursor:pointer;min-width:0}.date-display.placeholder{color:#7B8984;font-weight:700}.date-display:focus{outline:0}
+.calendar-overlay{display:none;position:fixed;inset:0;background:rgba(15,32,28,.35);backdrop-filter:blur(2px);z-index:260;align-items:center;justify-content:center;padding:16px}.calendar-overlay.open{display:flex}
+.s2s-calendar{width:min(390px,100%);background:#fff;border:1px solid var(--line);border-radius:24px;padding:16px;box-shadow:0 24px 70px rgba(20,45,38,.20)}
+.cal-head{display:grid;grid-template-columns:42px 1fr 42px;align-items:center;gap:8px}.cal-nav{height:40px;border:1px solid var(--line);background:#fff;border-radius:12px;font-size:21px;color:var(--ink);cursor:pointer}.cal-title{border:0;background:transparent;font-weight:900;font-size:16px;color:var(--ink);cursor:pointer}
+.cal-week,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal-week{margin:14px 0 5px;color:var(--muted);font-size:10px;font-weight:850;text-align:center}.cal-day{aspect-ratio:1;border:0;border-radius:12px;background:transparent;font-size:13px;color:var(--ink);cursor:pointer}.cal-day:hover{background:#EEF7F2}.cal-day.other{color:#AAB5B1}.cal-day.today{box-shadow:inset 0 0 0 1.5px #99CDB8}.cal-day.selected{background:var(--green);color:#fff;font-weight:900;box-shadow:none}
+.cal-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.cal-foot button{border:0;background:transparent;color:var(--green-dark);font-weight:850;padding:8px;cursor:pointer}.cal-foot .cal-done{background:var(--green-soft);border-radius:11px;padding:9px 12px}
+@media(max-width:480px){.semi-paydays{margin-left:0}.semi-grid{grid-template-columns:1fr 1fr}.s2s-calendar{border-radius:22px}}
+
+
+/* MVP 1.5.2 — Update #4: Bills + Everyday Spending */
+.bills-everyday-step{padding-bottom:8px}.bills-everyday-step h2{font-size:32px;letter-spacing:-.035em;max-width:540px;margin-top:24px}.bills-everyday-lead{font-size:16px;color:var(--muted);margin:0 0 22px;max-width:520px}.flow-block{margin:18px 0}.flow-title{display:flex;align-items:flex-start;gap:11px;margin-bottom:12px}.flow-title h3{font-size:18px;margin:3px 0 0}.flow-title p{font-size:12px;color:var(--muted);line-height:1.45;margin:4px 0 0;max-width:470px}.flow-divider{height:1px;background:linear-gradient(90deg,transparent,var(--line) 12%,var(--line) 88%,transparent);margin:22px 0}.bill-review-summary{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:center;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#FBFEFC,#F5FAF7);padding:13px 14px;margin-top:10px}.bill-review-icon{width:38px;height:38px;border-radius:12px;background:#E6F5ED;display:grid;place-items:center;font-size:18px}.bill-review-copy{min-width:0}.bill-review-copy strong{display:block;font-size:14px}.bill-review-copy small{display:block;color:var(--muted);font-size:11px;margin-top:3px;line-height:1.35}.bill-review-summary button{border:0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 10px;color:var(--ink);font-size:11px;font-weight:900;white-space:nowrap}.bill-review-summary button:disabled{opacity:.45;cursor:not-allowed}.bill-review-summary button span{color:var(--green);font-size:16px;margin-left:3px}.bill-review-panel{display:none;margin-top:8px}.bill-review-panel.open{display:block}.bill-review-panel .bill-stack{margin-top:0}.bill-review-panel .bill-stack-head{border-bottom:1px solid var(--line)}
+.everyday-card{border:1px solid #CFE3D9;border-radius:20px;background:linear-gradient(145deg,#FFFFFF,#F7FCF9);padding:15px;box-shadow:0 8px 24px rgba(28,72,57,.045)}.everyday-card>label{display:block;font-size:13px;font-weight:900;margin-bottom:9px}.everyday-input-row{display:block}.everyday-input-row .input{margin:0}.everyday-normalized{min-height:18px;color:#4F685F;font-size:10px;line-height:1.4;margin:7px 2px 0}.estimate-link{width:100%;border:0;background:#EAF7F0;color:#207654;border-radius:13px;padding:10px 11px;margin-top:9px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;text-align:left;font-weight:900}.estimate-icon{width:28px;height:28px;border-radius:9px;background:#D8EFE4;display:grid;place-items:center}.everyday-note{display:flex;gap:10px;align-items:flex-start;border:1px solid #D9E6F2;background:#F7FAFE;border-radius:16px;padding:12px;margin-top:10px}.everyday-note .why-icon{flex:0 0 32px;width:32px;height:32px}.everyday-note strong{font-size:12px}.everyday-note p{font-size:11px;color:#5A6E78;margin:3px 0 0;line-height:1.45}
+.everyday-modal-card{width:min(520px,100%);max-height:min(760px,92vh);overflow:auto}.everyday-modal-card h2{margin:0;font-size:24px}.everyday-modal-card .modal-intro{margin:5px 0 14px;color:var(--muted);font-size:13px;line-height:1.5}.estimator-context{display:flex;gap:9px;align-items:flex-start;border:1px solid #D9E6F2;background:#F7FAFE;border-radius:14px;padding:10px 11px;margin-bottom:10px;color:#526A61;font-size:11px;line-height:1.45}.estimator-context strong{color:var(--ink)}.estimate-category{display:grid;grid-template-columns:auto 1fr 118px;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}.estimate-category:first-of-type{border-top:0}.estimate-cat-icon{width:38px;height:38px;border-radius:12px;background:#E7F5ED;display:grid;place-items:center;font-size:17px}.estimate-cat-copy strong{display:block;font-size:13px}.estimate-cat-copy small{display:block;color:var(--muted);font-size:10px;line-height:1.35;margin-top:2px}.estimate-category .input{margin:0}.estimate-total{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid #CFE6D9;background:#EEF9F3;border-radius:16px;padding:13px;margin-top:10px}.estimate-total span{font-size:12px;font-weight:900}.estimate-total strong{font-size:20px;color:#197451}.zero-warning-card{width:min(455px,100%)}.zero-warning-head{display:flex;gap:11px;align-items:flex-start}.zero-warning-icon{width:38px;height:38px;border-radius:12px;background:#FFF0DD;color:#C66D12;display:grid;place-items:center;font-size:20px;font-weight:950}.zero-warning-card h3{margin:2px 0 5px;font-size:19px}.zero-warning-card p{font-size:12px;color:var(--muted);line-height:1.5;margin:0}.zero-warning-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px}
+@media(max-width:480px){.bills-everyday-step h2{font-size:29px}.bill-review-summary{grid-template-columns:auto 1fr}.bill-review-summary button{grid-column:1/-1;width:100%}.everyday-input-row{grid-template-columns:1fr}.estimate-category{grid-template-columns:auto 1fr}.estimate-category .input{grid-column:1/-1}.zero-warning-actions{grid-template-columns:1fr}}
+
+
+/* Savings onboarding re-engineering */
+.savings-lede{margin-bottom:22px}.savings-section{margin-top:20px}.numbered-title{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}.numbered-title>span{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#E1F4EB;color:#155B47;font-weight:900;flex:0 0 32px}.numbered-title h3{margin:1px 0 2px;font-size:18px}.numbered-title p{margin:0;color:var(--muted);font-size:13px}.numbered-title em{font-style:normal;color:var(--muted);font-weight:700}.goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.goal-choice{border:1px solid var(--line);background:#fff;border-radius:16px;padding:12px;text-align:left;display:flex;align-items:center;gap:10px;min-height:70px;cursor:pointer;color:var(--text)}.goal-choice:hover{border-color:#9ED3BD}.goal-choice.active{border-color:var(--green);background:#EFF9F4;box-shadow:0 0 0 1px rgba(47,159,117,.08)}.goal-choice.wide{grid-column:1/-1}.goal-choice-icon{width:38px;height:38px;border-radius:12px;background:#E7F5EE;display:grid;place-items:center;font-size:19px;flex:0 0 38px}.goal-choice strong,.goal-choice small{display:block}.goal-choice small{color:var(--muted);font-size:11px;margin-top:2px;line-height:1.25}.goal-custom-wrap{display:none;margin-top:10px}.goal-custom-wrap.open{display:block}.goal-custom-wrap label{display:block;font-size:12px;font-weight:850;margin-bottom:5px}.savings-goal-input{margin-left:44px;width:calc(100% - 44px)}.math-overview-link{margin-left:44px;border:0;background:transparent;color:#2563EB;font-size:12px;font-weight:800;cursor:pointer;padding:0 0 8px}.disclosure-panel{display:none}.disclosure-panel.open{display:block}.savings-method{margin:0 0 11px 44px;padding:12px 14px;border-radius:14px;background:#F1F6FF;border:1px solid #D8E6FF;font-size:12px;line-height:1.45;color:#38516E}.savings-method ol{margin:8px 0 6px;padding-left:19px}.savings-method p{margin:6px 0 0}.save-options{display:grid;gap:9px;margin-left:44px}.saving-pace{width:100%;border:1px solid var(--line);background:#fff;border-radius:16px;padding:13px 14px;text-align:left;color:var(--text);cursor:pointer}.saving-pace.active{border-color:var(--green);background:#F2FAF6;box-shadow:0 0 0 1px rgba(47,159,117,.08)}.pace-top{display:flex;align-items:flex-start;gap:10px}.pace-radio{width:20px;height:20px;border:2px solid #9AAEB0;border-radius:50%;margin-top:2px;flex:0 0 20px;display:grid;place-items:center}.saving-pace.active .pace-radio{border-color:var(--green)}.saving-pace.active .pace-radio:after{content:'';width:10px;height:10px;background:var(--green);border-radius:50%}.pace-copy{flex:1}.pace-copy strong{display:block;font-size:14px}.pace-copy .pace-amount{display:block;font-weight:900;font-size:17px;margin-top:2px}.pace-copy small{display:block;color:var(--muted);margin-top:3px;line-height:1.3}.recommended-tag{display:inline-block;padding:2px 7px;border-radius:999px;background:#DDF5E8;color:#146347;font-size:10px;font-weight:900;margin-left:6px}.why-pace{border:0;background:#EDF4FF;color:#2563EB;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}.pace-explain{display:none;margin:10px 0 0 30px;padding:11px 12px;border-radius:12px;background:#F6F9FF;border:1px solid #DFE9F7;color:#42566C;font-size:11px;line-height:1.45}.pace-explain.open{display:block}.pace-math{margin-top:8px;border-top:1px solid #DDE7EF;padding-top:7px;display:grid;grid-template-columns:1fr auto;gap:4px 10px}.pace-math strong{color:var(--text)}.custom-pace-editor{display:none;margin:10px 0 0 30px}.saving-pace.active .custom-pace-editor.open{display:block}.custom-pace-editor .input{max-width:220px}.not-now-pace{background:#FBFCFC}.savings-plan-preview{margin:18px 0 0 44px;border:1px solid #D9E7E1;border-radius:17px;padding:14px;background:linear-gradient(135deg,#F2FAF6,#F7FAFC)}.preview-title{display:flex;justify-content:space-between;gap:12px;align-items:center}.preview-title strong{font-size:15px}.preview-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}.preview-grid div{padding:9px;border-radius:12px;background:#fff;border:1px solid #E4ECE8}.preview-grid small,.preview-grid strong{display:block}.preview-grid small{color:var(--muted);font-size:10px}.preview-grid strong{margin-top:2px;font-size:14px}.paycheck-split{display:flex;height:11px;border-radius:999px;overflow:hidden;margin-top:12px;background:#E8EFEC}.paycheck-split span:nth-child(1){background:#195C49}.paycheck-split span:nth-child(2){background:#2F9F75}.paycheck-split span:nth-child(3){background:#8EDBB8}.paycheck-split span:nth-child(4){background:#DCE6EA}.preview-note{font-size:11px;color:var(--muted);margin:9px 0 0}.savings-change-note{display:flex;gap:10px;margin:12px 0 0 44px;padding:11px 12px;border-radius:14px;background:#FFF8EC;border:1px solid #F5E3BC}.savings-change-note p{margin:2px 0 0;color:var(--muted);font-size:11px}.savings-change-note strong{font-size:12px}
+@media(max-width:520px){.goal-grid{grid-template-columns:1fr}.goal-choice.wide{grid-column:auto}.savings-goal-input,.math-overview-link,.save-options,.savings-plan-preview,.savings-change-note,.savings-method{margin-left:0;width:100%}.preview-grid{grid-template-columns:1fr 1fr}.preview-grid div:last-child{grid-column:1/-1}}
+.savings-gate{border:1px solid #D8E7E0;border-radius:22px;background:linear-gradient(145deg,#F5FBF8,#FFFFFF);padding:18px;margin-top:16px}.savings-gate-visual{display:grid;grid-template-columns:46px 1fr;gap:13px;align-items:center;margin-bottom:16px}.savings-gate-icon{width:46px;height:46px;border-radius:15px;background:#E2F5EB;display:grid;place-items:center;font-size:22px}.savings-gate h3{margin:0 0 4px;font-size:17px}.savings-gate p{margin:0;color:var(--muted);font-size:12px;line-height:1.45}.savings-gate-actions{display:grid;gap:9px}.savings-gate-skip{border:1px solid var(--line);background:#fff;border-radius:15px;padding:12px 14px;text-align:left;font-weight:850;color:var(--text);cursor:pointer}.savings-gate-skip small{display:block;color:var(--muted);font-weight:600;margin-top:2px}.savings-builder{display:none}.savings-builder.open{display:block}.compact-savings-card{border:1px solid var(--line);border-radius:18px;background:#fff;padding:14px;margin-top:14px}.compact-savings-card .numbered-title{margin-bottom:10px}.compact-select{display:grid;grid-template-columns:42px 1fr;align-items:center;border:1px solid var(--line);border-radius:15px;background:#fff;overflow:hidden}.compact-select-icon{height:100%;min-height:52px;background:#EEF7F2;display:grid;place-items:center;font-size:18px}.compact-select select{width:100%;border:0;background:#fff;padding:14px 38px 14px 12px;font:inherit;font-weight:800;color:var(--text);outline:none}.selected-pace-card{border:1px solid #D8E7E0;border-radius:15px;background:#F7FBF9;padding:13px;margin-top:10px}.selected-pace-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.selected-pace-head strong{display:block}.selected-pace-amount{font-size:20px;font-weight:900;margin-top:2px}.selected-pace-desc{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.4}.selected-pace-card .pace-explain{margin:10px 0 0}.compact-custom-editor{display:none;margin-top:10px}.compact-custom-editor.open{display:block}.savings-builder .savings-goal-input,.savings-builder .math-overview-link,.savings-builder .savings-method,.savings-builder .savings-plan-preview,.savings-builder .savings-change-note{margin-left:0;width:100%}.savings-builder .savings-section{margin-top:14px}.savings-builder .savings-plan-preview{margin-top:14px}.savings-inline-skip{width:100%;border:0;background:transparent;color:var(--muted);font-weight:850;font-size:12px;padding:12px;cursor:pointer}.savings-inline-skip:hover{color:var(--text)}
+@media(max-width:520px){.savings-gate{padding:15px}.compact-savings-card{padding:12px}.selected-pace-head{align-items:center}}
+
+/* ===== MVP 1.5.2 — Final onboarding reveal ===== */
+.aha-ready{background:linear-gradient(135deg,#f1fbf6,#fbfffd);border:1px solid #d7ebe2;padding:18px 20px;margin-bottom:14px}
+.aha-ready h2{font-size:31px;line-height:1.05;margin:3px 0 7px;letter-spacing:-.8px}
+.aha-ready p{margin:0;color:var(--muted);font-size:15px;line-height:1.45}
+.aha-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#164f40,#26745b);color:white;border:none;padding:23px 22px;margin-bottom:14px}
+.aha-hero:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-55px;top:-80px;background:rgba(255,255,255,.08)}
+.aha-hero .kicker{color:#d9f4e8;letter-spacing:1.1px}
+.aha-hero-value{font-size:58px;font-weight:900;line-height:.94;letter-spacing:-2.2px;margin:12px 0 3px}
+.aha-hero-name{font-size:27px;font-weight:900;line-height:1}
+.aha-hero p{color:#e4f5ee;margin:13px 0 15px;max-width:470px;line-height:1.45}
+.aha-why-btn{position:absolute;right:17px;top:17px;z-index:2;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.09);color:white;border-radius:12px;padding:8px 11px;font-weight:800;cursor:pointer}
+.aha-pills{display:flex;gap:7px;flex-wrap:wrap;position:relative;z-index:1}
+.aha-pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:7px 9px;font-size:11px;font-weight:800}
+.aha-paycheck{padding:18px 19px;margin-bottom:14px}
+.aha-paycheck-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:13px}
+.aha-paycheck-head h3{margin:0;font-size:18px}
+.aha-paycheck-head button{border:0;background:none;color:#315fa9;font-size:12px;font-weight:800;cursor:pointer}
+.aha-bar{height:38px;border-radius:12px;overflow:hidden;display:flex;background:#edf2ef;margin-bottom:13px}
+.aha-bar span{min-width:2px;display:block;border-right:1px solid rgba(255,255,255,.85)}
+.aha-bar .bills{background:#176049}.aha-bar .everyday{background:#2b9b73}.aha-bar .savings{background:#8eddb7}.aha-bar .safe{background:#d7efe2}
+.aha-four{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.aha-four div{padding-left:9px;border-left:3px solid #d9ebe3}
+.aha-four small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.aha-four strong{font-size:16px}
+.aha-section{padding:18px 19px;margin-bottom:14px}.aha-section h3{margin:0 0 12px;font-size:18px}
+.aha-accomplish{display:grid;gap:0}
+.aha-accomplish-row{display:grid;grid-template-columns:38px 1fr;gap:10px;padding:11px 0;border-bottom:1px solid #e7efeb}
+.aha-accomplish-row:last-child{border-bottom:0}
+.aha-check{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#e3f6ec;color:#19855f;font-weight:900}
+.aha-accomplish-row strong{display:block;font-size:14px}.aha-accomplish-row p{margin:2px 0 0;color:var(--muted);font-size:12px;line-height:1.4}
+.aha-outlook{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.aha-outlook div{background:#f4f8f6;border-radius:12px;padding:11px 7px;text-align:center}
+.aha-outlook small{display:block;color:var(--muted);font-size:10px}.aha-outlook strong{display:block;font-size:15px;margin:3px 0}
+.aha-routine{display:flex;gap:11px;align-items:flex-start;background:#f2f7ff;border:1px solid #d8e5fa;border-radius:18px;padding:16px 17px;margin-bottom:14px}
+.aha-routine-icon{width:38px;height:38px;border-radius:11px;background:#dce9ff;color:#315fa9;display:grid;place-items:center;font-size:18px;flex:0 0 auto}
+.aha-routine h3{margin:0 0 3px;font-size:17px}.aha-routine p{margin:0;color:#435a73;font-size:13px;line-height:1.45}
+.aha-state{border-radius:16px;padding:14px 15px;margin-bottom:14px}
+.aha-state.good{background:#edf9f3;border:1px solid #cfeadd}.aha-state.tight{background:#fff8ea;border:1px solid #f0dfb8}.aha-state.zero{background:#f4f7f6;border:1px solid #dfe8e4}
+.aha-state strong{display:block;margin-bottom:3px}.aha-state p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+.aha-math{display:none;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.20);border-radius:14px;padding:13px;margin-top:12px;color:#fff}
+.aha-math.open{display:block}.aha-math-row{display:flex;justify-content:space-between;gap:15px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.15);font-size:13px;color:#eef8f4}.aha-math-row:last-child{border-bottom:0;font-weight:900;color:#fff}.aha-math .muted{color:#d8eee5!important}.aha-math strong{color:#fff}
+@media(max-width:600px){
+ .aha-ready h2{font-size:27px}.aha-hero-value{font-size:50px}.aha-hero-name{font-size:24px}
+ .aha-four{grid-template-columns:repeat(2,1fr);gap:11px}.aha-outlook{grid-template-columns:repeat(2,1fr)}
+ .aha-why-btn{position:static;margin-top:4px}.aha-hero p{margin-top:10px}
+}
+
+</style>
+</head>
+<body>
+
+<datalist id="billSuggestions">
+<option value="Rent / Mortgage"><option value="Car payment"><option value="Auto insurance">
+<option value="Health insurance"><option value="Phone"><option value="Internet">
+<option value="Electricity"><option value="Gas utility"><option value="Water">
+<option value="Credit card minimum"><option value="Student loan"><option value="Subscription">
+<option value="Childcare"><option value="Pet care"><option value="Other bill">
+</datalist>
+<datalist id="goalSuggestions">
+<option value="Emergency fund"><option value="Vacation"><option value="New car">
+<option value="Moving out"><option value="$1,000 starter savings"><option value="Home">
+<option value="Something I want"><option value="Just build savings">
+</datalist>
+
+
+<div id="onboard" class="onboard"><div class="onwrap">
+<div class="brand"><div class="logo">S2</div><div><h1>Safe2Spend</h1><small class="onboard-brandline">Plan clearly. Spend confidently.</small></div></div>
+<div class="onprog"><div id="onbar" style="width:14.3%"></div></div>
+
+<section class="onstep active opening-step">
+<div class="kicker" style="color:var(--blue)">1 of 6</div>
+<h2>Let’s get a clear picture of your finances today.</h2>
+<p class="opening-lead">An estimate is enough to start building your plan.</p>
+
+<div class="start-card">
+  <div class="start-card-head"><div class="start-icon">💳</div><div><strong>Spending account</strong><small>The account you normally use for bills and everyday purchases.</small></div></div>
+  <div class="field"><label>About how much is available?</label><div class="input opening-input"><span>$</span><input id="ocheck" inputmode="decimal" placeholder="0.00" oninput="openingStepChanged()" aria-label="Approximate spending account balance"></div></div>
+  <div class="mini">A close estimate is all Safe2Spend needs to get started.</div>
+</div>
+
+<div class="additional-head"><h3>Additional balances</h3><span class="optional-chip">Optional</span></div>
+<p class="additional-copy">Include these only if you want Safe2Spend to consider them in this plan.</p>
+
+<div id="savingsOptional" class="optional-balance savings">
+  <button type="button" class="optional-trigger" onclick="toggleOpeningBalance('savings')" aria-expanded="false"><span class="optional-icon">🐷</span><span><strong>Include savings</strong><small>Keep savings separate while we build the plan.</small></span><span class="optional-plus">+</span></button>
+  <div class="optional-body"><div class="field"><label>Amount to include</label><div class="input"><span>$</span><input id="osavings" inputmode="decimal" placeholder="0.00" aria-label="Savings amount to include"></div></div><button type="button" class="optional-remove" onclick="removeOpeningBalance('savings')">Don’t include savings</button></div>
+</div>
+<div id="cashOptional" class="optional-balance">
+  <button type="button" class="optional-trigger" onclick="toggleOpeningBalance('cash')" aria-expanded="false"><span class="optional-icon">💵</span><span><strong>Include cash</strong><small>Add cash only if it’s part of what you want planned.</small></span><span class="optional-plus">+</span></button>
+  <div class="optional-body"><div class="field"><label>Amount to include</label><div class="input"><span>$</span><input id="ocash" inputmode="decimal" placeholder="0.00" aria-label="Cash amount to include"></div></div><button type="button" class="optional-remove" onclick="removeOpeningBalance('cash')">Don’t include cash</button></div>
+</div>
+
+<div class="trust-panel"><div class="trust-top"><div class="trust-icon">🔒</div><div class="trust-copy"><strong>Your accounts stay private</strong><p>Safe2Spend doesn’t connect to your bank, monitor your accounts, or track your purchases. You choose the numbers we use.</p></div></div><details><summary>How Safe2Spend uses my numbers ›</summary><p>Think of Safe2Spend like a financial calculator. The amounts you enter are used to calculate your plan and are saved in this browser so your plan is still here when you return. Safe2Spend does not log in to your bank, read transactions, or independently monitor your spending.</p></details></div>
+<button id="openingContinue" class="primary full opening-continue" onclick="nextStep()">Continue →</button></section>
+
+<section class="onstep paycheck-step">
+<div class="kicker" style="color:var(--blue)">2 of 6</div>
+<h2>Let’s map out your pay schedule.</h2>
+<p class="paycheck-lead">A few basics are enough for Safe2Spend to plan around your paydays.</p>
+
+<div class="pay-section">
+  <div class="pay-section-title"><span class="step-dot">1</span><div><h3>How often are you paid?</h3></div></div>
+  <div id="freqs" class="pay-frequency-grid">
+    <button class="choice pay-choice active" onclick="pickFreq('weekly',this)"><span class="pay-choice-icon">▣</span><span><strong>Every week</strong><small>About every 7 days</small></span><span class="pay-check">✓</span></button>
+    <button class="choice pay-choice" onclick="pickFreq('biweekly',this)"><span class="pay-choice-icon">▣</span><span><strong>Every 2 weeks</strong><small>About every 14 days</small></span><span class="pay-check">✓</span></button>
+    <button class="choice pay-choice" onclick="pickFreq('semimonthly',this)"><span class="pay-choice-icon">▣</span><span><strong>Twice a month</strong><small>Two paydays per month</small></span><span class="pay-check">✓</span></button>
+    <button class="choice pay-choice" onclick="pickFreq('monthly',this)"><span class="pay-choice-icon">▣</span><span><strong>Once a month</strong><small>One payday per month</small></span><span class="pay-check">✓</span></button>
+  </div>
+</div>
+
+<div id="semiPaydays" class="semi-paydays">
+  <div class="semi-paydays-head"><span class="pay-choice-icon">▣</span><div><strong>Choose your two usual paydays</strong><small>Safe2Spend will use these dates each month and handle shorter months automatically.</small></div></div>
+  <div class="semi-grid">
+    <div><label for="semiDay1">First payday</label><div class="input"><select id="semiDay1" onchange="syncSemiPaydays()"></select></div></div>
+    <div><label for="semiDay2">Second payday</label><div class="input"><select id="semiDay2" onchange="syncSemiPaydays()"></select></div></div>
+  </div>
+  <div id="semiPayError" class="composer-error" aria-live="polite"></div>
+</div>
+
+<div id="nextPaySection" class="pay-section pay-detail-section">
+  <div class="pay-section-title"><span class="step-dot">2</span><div><h3 id="nextPayTitle">Next payday</h3><p id="nextPayCopy">When do you expect your next paycheck?</p></div></div>
+  <div class="input pay-detail-input"><span class="pay-input-icon">▣</span><input id="onextpay" type="date" aria-label="Next payday"></div>
+</div>
+
+<div class="pay-section pay-detail-section">
+  <div class="pay-section-title"><span class="step-dot">3</span><div><h3>Typical take-home amount</h3><p>About how much usually reaches you?</p></div></div>
+  <div class="input pay-detail-input pay-amount-input"><span>$</span><input id="opayamt" inputmode="decimal" placeholder="0.00" aria-label="Typical take-home amount"></div>
+  <div class="pay-hint">An estimate is fine. Use what you receive after taxes and deductions.</div>
+</div>
+
+<details class="pay-why"><summary><span class="why-icon">i</span><span><strong>Why Safe2Spend asks</strong><small>Your pay schedule helps us line up bills, savings, and everyday expenses with the paychecks that can cover them.</small></span><span class="why-more">Learn more ›</span></summary><p>Safe2Spend only needs the timing and approximate take-home amount to build your plan. No employer, salary history, paystub, or bank connection is required.</p></details>
+
+<div class="two pay-actions"><button class="ghost" onclick="backStep()">Back</button><button class="primary" onclick="nextStep()">Continue →</button></div></section>
+
+<section class="onstep bills-everyday-step">
+<div class="kicker" style="color:var(--blue)">3 of 6</div><h2>Let’s set your bills and everyday spending.</h2>
+<p class="bills-everyday-lead">This helps Safe2Spend understand what to prioritize each paycheck.</p>
+
+<div class="flow-block bills-flow-block">
+  <div class="flow-title"><span class="step-dot">1</span><div><h3>Your bills</h3><p>Add recurring bills and upcoming payments Safe2Spend should prepare for.</p></div></div>
+  <div class="bill-entry-shell">
+    <div class="field bill-type-field"><label>Add a bill</label><div class="input"><select id="obillPicker" onchange="startBillComposer()">
+      <option value="">Choose a bill type…</option>
+      <option value="Rent / Mortgage">🏠 Rent / Mortgage</option><option value="Car payment">🚗 Car payment</option><option value="Auto insurance">🛡️ Auto insurance</option><option value="Health insurance">❤️ Health insurance</option><option value="Phone">📱 Phone</option><option value="Internet">🌐 Internet</option><option value="Electricity">⚡ Electricity</option><option value="Gas utility">🔥 Gas utility</option><option value="Water">💧 Water</option><option value="Credit card minimum">💳 Credit card minimum</option><option value="Student loan">🎓 Student loan</option><option value="Subscription">🔁 Subscription</option><option value="Childcare">👶 Childcare</option><option value="Pet care">🐾 Pet care</option><option value="Other bill">🧾 Other bill…</option>
+    </select></div></div>
+    <div id="billComposer" class="bill-composer" aria-live="polite"></div>
+  </div>
+  <div id="billAddStatus" class="bill-add-status" aria-live="polite"></div>
+  <div id="billReviewSummary" class="bill-review-summary">
+    <div class="bill-review-icon">🏠</div><div class="bill-review-copy"><strong id="obillHeading">Your bills (0)</strong><small id="obillMonthly">No bills added yet.</small></div>
+    <button id="billReviewToggle" type="button" onclick="toggleBillReview()" disabled>Review bills <span>›</span></button>
+  </div>
+  <div id="billReviewPanel" class="bill-review-panel"><div class="bill-stack"><div class="bill-stack-head"><div><strong>Bill details</strong><small>Newest first</small></div><button type="button" class="composer-cancel" onclick="toggleBillReview(false)">Close</button></div><div id="obills"><div class="bill-empty">No bills yet. Choose a type above to add your first one.</div></div></div></div>
+</div>
+
+<div class="flow-divider" aria-hidden="true"></div>
+
+<div class="flow-block everyday-flow-block">
+  <div class="flow-title"><span class="step-dot">2</span><div><h3>Everyday spending</h3><p>The regular things you spend on between paychecks — groceries, gas, meals, household basics, and other day-to-day needs.</p></div></div>
+  <div class="everyday-card">
+    <label for="oeverydayAmount">About how much do you usually need until your next paycheck?</label>
+    <div class="everyday-input-row"><div class="input"><span>$</span><input id="oeverydayAmount" inputmode="decimal" placeholder="0.00" oninput="invalidateEverydayBreakdown();syncEverydaySummary()"></div></div>
+    <div id="everydayNormalized" class="everyday-normalized">Safe2Spend will protect this amount from each paycheck for everyday expenses.</div>
+    <button type="button" id="everydayEstimateBtn" class="estimate-link" onclick="openEverydayEstimator()" aria-haspopup="dialog" aria-controls="everydayEstimateM"><span class="estimate-icon">▦</span><span>Help me estimate</span><span>›</span></button>
+  </div>
+  <div class="everyday-note"><span class="why-icon">i</span><div><strong>You can always update this later.</strong><p>This is just an estimate to help Safe2Spend protect enough for day-to-day expenses.</p></div></div>
+</div>
+
+<div class="two" style="margin-top:16px"><button class="ghost" onclick="backStep()">Back</button><button class="primary" onclick="nextStep()">Continue →</button></div></section>
+
+<section class="onstep savings-step">
+<div class="kicker" style="color:var(--blue)">4 of 5</div>
+<h2>Let’s build toward something.</h2>
+<p class="muted savings-lede">Make saving part of your plan at a pace that still leaves room for today.</p>
+
+<div id="savingsGate" class="savings-gate">
+  <div class="savings-gate-visual"><div class="savings-gate-icon">↗</div><div><h3>Ready to make saving part of the plan?</h3><p>Safe2Spend will use the numbers you already entered to suggest a realistic amount. You can change it—or skip it—at any time.</p></div></div>
+  <div class="savings-gate-actions">
+    <button type="button" class="primary" onclick="startSavingsPlan()">Build my savings plan →</button>
+    <button type="button" class="savings-gate-skip" onclick="skipSavingsOnboarding()">Not right now<small>Continue without setting aside savings.</small></button>
+  </div>
+</div>
+
+<div id="savingsBuilder" class="savings-builder">
+  <div class="compact-savings-card">
+    <div class="numbered-title"><span>1</span><div><h3>What are you building toward?</h3><p>Choose one option. You can always change it later.</p></div></div>
+    <div class="compact-select"><span id="goalSelectIcon" class="compact-select-icon">◎</span><select id="goalTypeSelect" onchange="goalTypeSelectChanged()" aria-label="Savings goal type">
+      <option value="">Choose a goal</option>
+      <option value="Emergency fund">🛡 Emergency fund</option>
+      <option value="Trip / Vacation">✈ Trip / Vacation</option>
+      <option value="Vehicle">🚗 Vehicle</option>
+      <option value="Home">🏠 Home</option>
+      <option value="Education">🎓 Education</option>
+      <option value="save">◎ I just want to save</option>
+      <option value="custom">••• Something else</option>
+    </select></div>
+    <div id="customGoalWrap" class="goal-custom-wrap"><label>Goal name</label><div class="input"><input id="ogoalName" placeholder="What are you building toward?" oninput="savingsGoalChanged()"></div></div>
+    <input id="goalTypeValue" type="hidden" value="">
+  </div>
+
+  <div class="compact-savings-card">
+    <div class="numbered-title"><span>2</span><div><h3>Goal amount <em>optional</em></h3><p>Give us a target if you have one. An estimate is enough.</p></div></div>
+    <div class="input savings-goal-input"><span>$</span><input id="ogoalAmt" inputmode="decimal" placeholder="0.00" oninput="savingsGoalChanged()"></div>
+  </div>
+
+  <div class="compact-savings-card">
+    <div class="numbered-title"><span>3</span><div><h3>Choose a savings pace</h3><p>Safe2Spend recommends a pace based on what remains after bills and everyday spending.</p></div></div>
+    <button type="button" class="math-overview-link" onclick="toggleDisclosure('savingsMethod')" aria-controls="savingsMethod">ⓘ How Safe2Spend chooses these amounts</button>
+    <div id="savingsMethod" class="savings-method disclosure-panel"><strong>We protect the plan before recommending savings.</strong><ol><li>Prepare for upcoming bills.</li><li>Protect the everyday amount you said you need.</li><li>Look across upcoming paychecks for breathing room.</li><li>Offer different tradeoffs between saving and flexible spending.</li></ol><p>These are planning estimates, not rules. You stay in control.</p></div>
+    <div class="compact-select"><span class="compact-select-icon">↗</span><select id="savingsPaceSelect" onchange="savingsPaceSelectChanged()" aria-label="Savings pace"></select></div>
+    <div id="selectedPaceCard" class="selected-pace-card"></div>
+    <div id="compactCustomEditor" class="compact-custom-editor"><label>Save each paycheck</label><div class="input"><span>$</span><input id="customSaveAmount" inputmode="decimal" placeholder="0.00" oninput="customSavingsChanged()"></div><small id="customSaveWarning" class="muted"></small></div>
+  </div>
+
+  <div id="savingsPlanPreview" class="savings-plan-preview"></div>
+  <div class="savings-change-note"><span class="why-icon">i</span><div><strong>You can always change this later.</strong><p>Your goal and savings pace can change as your situation changes.</p></div></div>
+  <button type="button" class="savings-inline-skip" onclick="skipSavingsOnboarding()">Skip savings for now</button>
+  <div class="two"><button class="ghost" onclick="backStep()">Back</button><button class="primary" onclick="nextStep()">Continue →</button></div>
+</div>
+</section>
+
+<section class="onstep">
+<div class="kicker" style="color:var(--blue)">5 of 5</div>
+<div class="card aha-ready">
+  <h2>Your plan is ready.</h2>
+  <p>Everything you told us has been organized around your next paycheck.</p>
+</div>
+<div class="card aha-hero">
+  <div class="kicker">YOUR SAFE2SPEND AMOUNT</div>
+  <button type="button" class="aha-why-btn" onclick="toggleAhaMath()">ⓘ <span id="ahaWhyLabel">Why?</span></button>
+  <div class="aha-hero-value" id="ahaSafe">$0</div>
+  <div class="aha-hero-name">Safe2Spend</div>
+  <p id="ahaHeroSub">After everything important is accounted for.</p>
+  <div class="aha-pills" id="ahaPills"></div>
+  <div class="aha-math" id="ahaMath"></div>
+</div>
+<div class="card aha-paycheck">
+  <div class="aha-paycheck-head"><h3 id="ahaPaycheckTitle">Your paycheck</h3></div>
+  <div class="aha-bar" id="ahaBar"></div>
+  <div class="aha-four" id="ahaFour"></div>
+</div>
+<div class="card aha-section">
+  <h3>What this plan does</h3>
+  <div class="aha-accomplish" id="ahaAccomplish"></div>
+</div>
+<div class="card aha-section" id="ahaOutlookCard">
+  <h3>Keep this rhythm and…</h3>
+  <div class="aha-outlook" id="ahaOutlook"></div>
+</div>
+<div class="aha-state" id="ahaState"></div>
+<div class="aha-routine">
+  <div class="aha-routine-icon">↻</div>
+  <div><h3>Your payday routine</h3><p>Get paid → prepare for bills → protect everyday spending → save → know what’s Safe2Spend.</p></div>
+</div>
+<div class="two"><button class="ghost" onclick="backStep()">Back</button><button class="primary" onclick="finish()">See my dashboard →</button></div>
+</section>
+</div></div>
+
+<div class="app"><div class="top"><div class="brand"><div class="logo">S2</div><div><h1>Safe2Spend</h1><small>MVP 1.5.2 • Clarity</small></div></div><button class="ghost" onclick="editOpen()">Edit</button></div>
+
+<main id="home" class="screen active">
+<div class="card s2s-bubble">
+  <div class="label">Safe2Spend right now</div>
+  <div class="s2s-value" id="currentS2S">$0</div>
+  <div class="sub" id="currentS2SSub">This is the money that is actually yours to use after the plan.</div>
+  <div class="s2s-actions">
+    <button onclick="openS2SAction('spend')">− I spent</button>
+    <button onclick="openS2SAction('add')">+ Add money</button>
+    <button onclick="openS2SAction('save')">Move to savings</button>
+  </div>
+  <div class="s2s-note" id="s2sNote">Bills, everyday spending and savings get a job first. This is what remains.</div>
+</div>
+
+<div class="card change-card compact" id="changeCard">
+  <div class="change-line"><div class="change-icon">↕</div><div><h3 id="changeTitle">What changed</h3><p id="changeText"></p></div></div>
+</div>
+
+<div class="card compact soft-card">
+  <div class="section"><h3>Your money right now</h3><span class="hint-pill">Bank balance ≠ spending balance</span></div>
+  <div class="now-card" style="margin-top:11px">
+    <div class="now-stat"><small>Checking</small><strong id="dashChecking">$0</strong><span class="mini">What the bank shows</span></div>
+    <div class="now-stat"><small>Savings</small><strong id="dashSavings">$0</strong><span class="mini">Current savings</span></div>
+  </div>
+  <p class="answer-first" id="checkingExplain"></p>
+</div>
+
+<div class="card money-story" id="paydayCard">
+  <div class="kicker" style="color:var(--green-dark)" id="paydayKicker">NEXT PAYCHECK</div>
+  <h2 id="paydayTitle">Your paycheck plan</h2>
+  <p class="answer-first" id="paydayIntro"></p>
+  <div class="money-bar" id="moneyBar">
+    <button class="money-seg bills" id="segBills" onclick="showMoneyJob('bills')"></button>
+    <button class="money-seg life" id="segLife" onclick="showMoneyJob('life')"></button>
+    <button class="money-seg save" id="segSave" onclick="showMoneyJob('save')"></button>
+    <button class="money-seg yours" id="segYours" onclick="showMoneyJob('yours')"></button>
+  </div>
+  <div class="money-legend">
+    <button onclick="showMoneyJob('bills')"><small>Bills</small><strong id="nextBills">$0</strong></button>
+    <button onclick="showMoneyJob('life')"><small>Everyday</small><strong id="nextLife">$0</strong></button>
+    <button onclick="showMoneyJob('save')"><small>Savings</small><strong id="nextSaving">$0</strong></button>
+    <button onclick="showMoneyJob('yours')"><small>Yours</small><strong id="nextSafe">$0</strong></button>
+  </div>
+  <div class="job-explain" id="moneyJobExplain">Tap a section to see what that money is doing.</div>
+  <div class="safe-row"><div class="spread"><div><small class="muted">After everything important</small><strong id="paydaySafe">$0</strong></div><div><small class="muted" id="paydayUntil">until next payday</small></div></div></div>
+  <div class="disclosure" id="paycheckDisclosure">
+    <button class="disclosure-btn" onclick="toggleDisclosure('paycheckDisclosure')"><span>View the full paycheck breakdown</span><span class="chev">⌄</span></button>
+    <div class="disclosure-body">
+      <div class="flow-row"><span>Expected paycheck</span><strong id="nextIncome">+$0</strong></div>
+      <div id="fundingList" class="compact-list"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card advisor compact">
+  <div class="ahead"><div class="aidot">AI</div><div><h3>What this means</h3><small class="muted">No finance-speak</small></div></div>
+  <p id="advisorText"></p>
+</div>
+
+<div class="card goal-card compact" id="goalCard">
+  <div class="goal-head"><div><div class="kicker" style="color:#6E7B43">SAVINGS GOAL</div><h3 id="goalTitle">Build savings</h3></div><span class="goal-percent" id="goalPercent">0%</span></div>
+  <div class="goal-progress"><div id="goalProgressBar" style="width:0%"></div></div>
+  <div class="goal-details"><span id="goalProgressText">$0 saved</span><span id="goalEta">Keep going</span></div>
+  <div class="select-inline"><label for="goalPaceSelect">Saving pace</label><select id="goalPaceSelect" onchange="changeGoalPace(this.value)"></select></div>
+</div>
+
+<div class="card compact">
+  <div class="section"><h3>Recent Safe2Spend activity</h3><button class="ghost" style="min-height:36px;padding:8px 10px" onclick="clearS2SActivity()">Clear</button></div>
+  <div id="s2sActivity"></div>
+</div>
+
+<div class="card compact soft-card">
+  <div class="section"><h3>See what’s coming</h3><span class="muted">Planner</span></div>
+  <p class="answer-first">Check one week at a time: paychecks, bills, savings and what should still be yours.</p>
+  <button class="secondary full" onclick="go('progress',document.querySelectorAll('.nav button')[2])">Open Planner</button>
+</div>
+</main>
+
+<main id="ask" class="screen"><div class="card"><div class="kicker" style="color:var(--green-dark)">QUICK ANSWER</div><h2>Can I buy this?</h2><p class="muted">Give us the price. We’ll answer in plain English after protecting bills, everyday spending and savings.</p><button class="primary full" onclick="buyOpen()">Check a purchase</button></div></main>
+
+<main id="progress" class="screen">
+<div class="card planner-hero15">
+  <div class="kicker">PLANNER</div>
+  <h2>See your money before it happens</h2>
+  <p>Pick a week. We’ll show what comes in, what has to go out, what gets saved, and what should still be yours.</p>
+</div>
+
+<div class="card planner-positive compact">
+  <div class="section"><h3 id="plannerHeadline">Your next few weeks are mapped out.</h3><span class="status good" id="plannerStatus">On track</span></div>
+  <p id="plannerEncouragement">The point isn’t to scare you with numbers. It’s to make sure nothing sneaks up on you.</p>
+</div>
+
+<div class="card compact">
+  <div class="section"><div><div class="kicker" style="color:var(--green-dark)">WEEK BY WEEK</div><h3 style="margin-top:3px">Pick a week</h3></div><span class="muted" id="freqLabel"></span></div>
+  <div class="planner-strip" id="plannerWeekStrip"></div>
+  <div id="plannerWeekDetail"></div>
+</div>
+
+<div class="card planner-callout compact">
+  <div class="ahead"><div class="aidot">AI</div><div><h3>Your planner take</h3><small class="muted">The one thing worth knowing</small></div></div>
+  <p id="aheadAdvisor"></p>
+</div>
+
+<div class="card compact">
+  <div class="section"><h3>Further ahead</h3><span class="muted">Savings</span></div>
+  <div class="planner-summary" style="margin-top:10px">
+    <div><small>End of month</small><strong id="fm">$0</strong></div>
+    <div><small>3 months</small><strong id="f3">$0</strong></div>
+    <div><small>6 months</small><strong id="f6">$0</strong></div>
+    <div><small>1 year</small><strong id="fy">$0</strong></div>
+  </div>
+  <div style="margin-top:12px" id="aheadMetrics"></div>
+  <p class="mini">These are planning estimates based on the income, bills and savings pace you entered.</p>
+</div>
+</main>
+
+<main id="me" class="screen"><div class="card"><h3>My setup</h3><div id="setupSummary"></div><button class="ghost full" onclick="editOpen()">Edit my plan</button><button class="danger full" style="margin-top:8px" onclick="resetAll()">Reset app</button></div></main>
+</div>
+
+<nav class="nav"><button class="active" onclick="go('home',this)">Home</button><button onclick="go('ask',this)">Ask</button><button onclick="go('progress',this)">Planner</button><button onclick="go('me',this)">Me</button></nav>
+
+
+<div id="everydayEstimateM" class="modal"><div class="sheet everyday-modal-card"><div class="handle"></div><div class="section"><div><h2>Estimate your everyday spending</h2><p class="modal-intro">Break it down in whatever way is easiest. Safe2Spend will total it for you.</p></div><button class="composer-cancel" type="button" onclick="closeM('everydayEstimateM')">Close</button></div>
+  <div class="estimator-context"><span class="why-icon">i</span><div><strong>Estimate what you need until your next paycheck.</strong><br>Use rough amounts. Safe2Spend will add them together for you.</div></div>
+  <div class="estimate-category"><span class="estimate-cat-icon">🛒</span><div class="estimate-cat-copy"><strong>Groceries</strong><small>Food and household grocery items</small></div><div class="input"><span>$</span><input id="estFood" inputmode="decimal" placeholder="0.00" oninput="updateEverydayEstimateTotal()"></div></div>
+  <div class="estimate-category"><span class="estimate-cat-icon">⛽</span><div class="estimate-cat-copy"><strong>Gas / Transit</strong><small>Fuel, public transit, rideshare</small></div><div class="input"><span>$</span><input id="estGas" inputmode="decimal" placeholder="0.00" oninput="updateEverydayEstimateTotal()"></div></div>
+  <div class="estimate-category"><span class="estimate-cat-icon">🍽️</span><div class="estimate-cat-copy"><strong>Meals / Dining</strong><small>Restaurants, coffee, takeout</small></div><div class="input"><span>$</span><input id="estMeals" inputmode="decimal" placeholder="0.00" oninput="updateEverydayEstimateTotal()"></div></div>
+  <div class="estimate-category"><span class="estimate-cat-icon">🧴</span><div class="estimate-cat-copy"><strong>Personal & Household</strong><small>Toiletries, cleaning supplies, basics</small></div><div class="input"><span>$</span><input id="estHouse" inputmode="decimal" placeholder="0.00" oninput="updateEverydayEstimateTotal()"></div></div>
+  <div class="estimate-category"><span class="estimate-cat-icon">•••</span><div class="estimate-cat-copy"><strong>Other everyday needs</strong><small>Anything regular that doesn’t fit above</small></div><div class="input"><span>$</span><input id="estOther" inputmode="decimal" placeholder="0.00" oninput="updateEverydayEstimateTotal()"></div></div>
+  <div class="estimate-total"><span>Estimated total</span><div style="text-align:right"><strong id="everydayEstimateTotal">$0.00</strong><small id="everydayEstimateTotalBasis" class="muted" style="display:block">Until next paycheck</small></div></div>
+  <div class="two" style="margin-top:13px"><button class="ghost" type="button" onclick="closeM('everydayEstimateM')">Cancel</button><button class="primary" type="button" onclick="useEverydayEstimate()">Use this amount</button></div>
+</div></div>
+
+<div id="everydayZeroM" class="modal"><div class="sheet zero-warning-card"><div class="handle"></div><div class="zero-warning-head"><div class="zero-warning-icon">!</div><div><h3>No everyday spending added yet</h3><p>You can leave this at $0, but Safe2Spend won’t reserve anything for groceries, gas, meals, or other regular day-to-day expenses. That can make your Safe2Spend number higher than what’s realistic.</p></div></div><div class="zero-warning-actions"><button class="ghost" type="button" onclick="closeM('everydayZeroM');setTimeout(()=>oeverydayAmount.focus(),0)">Add an estimate</button><button class="primary" type="button" onclick="continueWithZeroEveryday()">Continue with $0</button></div></div></div>
+
+<div id="buyM" class="modal"><div class="sheet"><div class="handle"></div><h2>Can I buy this?</h2><p>Give us the price. We’ll check it against your actual plan.</p><div class="field"><label>What is it?</label><div class="input"><input id="buyName" placeholder="Dinner, shoes, concert..."></div></div><div class="field"><label>Price</label><div class="input"><span>$</span><input id="buyAmt" inputmode="decimal"></div></div><div class="two"><button class="ghost" onclick="closeM('buyM')">Cancel</button><button class="primary" onclick="analyzeBuy()">Check it</button></div><div id="buyResult"></div></div></div>
+
+
+<div id="s2sM" class="modal"><div class="sheet"><div class="handle"></div>
+<h2 id="s2sActionTitle">Update Safe2Spend</h2>
+<p id="s2sActionCopy">Keep your live Safe2Spend balance accurate.</p>
+<div class="field"><label id="s2sAmountLabel">Amount</label><div class="input"><span>$</span><input id="s2sAmount" inputmode="decimal" placeholder="25"></div></div>
+<div class="field"><label>Note <span class="muted">(optional)</span></label><div class="input"><input id="s2sDesc" placeholder="Lunch, refund, extra cash..."></div></div>
+<div class="two"><button class="ghost" onclick="closeM('s2sM')">Cancel</button><button class="primary" id="s2sActionButton" onclick="applyS2SAction()">Save</button></div>
+</div></div>
+
+<div id="editM" class="modal"><div class="sheet"><div class="handle"></div><h2>Edit your plan</h2><p>Change the facts; Safe2Spend rebuilds the paycheck plan.</p>
+<div class="two"><div class="field"><label>Checking</label><div class="input"><span>$</span><input id="echeck" inputmode="decimal"></div></div><div class="field"><label>Savings</label><div class="input"><span>$</span><input id="esavings" inputmode="decimal"></div></div></div>
+<div class="field"><label>Pay schedule</label><div class="input"><select id="efreq" onchange="syncEditPaySchedule()"><option value="weekly">Every week</option><option value="biweekly">Every 2 weeks</option><option value="semimonthly">Twice a month</option><option value="monthly">Once a month</option></select></div></div>
+<div id="editSemiDays" class="semi-paydays"><div class="semi-grid"><div><label>First payday</label><div class="input"><select id="esemiDay1"></select></div></div><div><label>Second payday</label><div class="input"><select id="esemiDay2"></select></div></div></div></div>
+<div class="two"><div id="editNextPayField" class="field"><label>Next paycheck</label><div class="input"><input id="enext" type="date"></div></div><div class="field"><label>Take-home</label><div class="input"><span>$</span><input id="epay" inputmode="decimal" placeholder="0.00"></div></div></div>
+<div class="two"><div class="field"><label>Groceries / cycle</label><div class="input"><span>$</span><input id="efood" inputmode="decimal"></div></div><div class="field"><label>Gas / cycle</label><div class="input"><span>$</span><input id="egas" inputmode="decimal"></div></div></div>
+<div class="field"><label>Other everyday needs / paycheck</label><div class="input"><span>$</span><input id="eother" inputmode="decimal"></div></div>
+<div class="two"><div class="field"><label>Savings goal</label><div class="input"><input id="egoal" list="goalSuggestions" placeholder="Emergency fund"></div></div><div class="field"><label>Goal amount</label><div class="input"><span>$</span><input id="egoalamt" inputmode="decimal"></div></div></div>
+<div class="field"><label>Save each paycheck</label><div class="input"><span>$</span><input id="esave" inputmode="decimal"></div></div>
+<div class="section"><h3>Bills</h3><button class="secondary" onclick="addEBill()">+ Bill</button></div><div id="ebills"></div>
+<div class="two"><button class="ghost" onclick="closeM('editM')">Cancel</button><button class="primary" onclick="saveEdit()">Save</button></div></div></div>
+
+<script>
+const KEY='safe2spend_mvp14';
+let P={checking:0,savings:0,cash:0,payFreq:'weekly',payDays:['15','last'],nextPayday:'',paycheck:0,bills:[],life:{food:0,gas:0,other:0},everydayInput:{amount:0,basis:'paycheck'},goalName:'',goalType:'',goalAmount:0,savePace:'balanced',savePerPaycheck:0,s2sBalance:null,s2sAnchor:null,s2sActivity:[],lastChange:null};
+let step=0,saveChoice='balanced';
+const n=v=>Math.max(0,Number(String(v||'').replace(/[$,\s]/g,''))||0);
+const money=v=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(v||0);
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function today(){let d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+function iso(d){return d.toISOString().slice(0,10)}
+function parseDate(s){let [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
+function addDays(d,x){let q=new Date(d);q.setDate(q.getDate()+x);return q}
+function addMonths(d,x){let q=new Date(d);q.setMonth(q.getMonth()+x);return q}
+function freqDays(){return P.payFreq==='weekly'?7:P.payFreq==='biweekly'?14:P.payFreq==='monthly'?30:15}
+function freqName(){return P.payFreq==='weekly'?'Every week':P.payFreq==='biweekly'?'Every 2 weeks':P.payFreq==='semimonthly'?'Twice a month':'Once a month'}
+function daysInMonth(y,m){return new Date(y,m+1,0).getDate()}
+function dateForDaySpec(y,m,spec){
+  let max=daysInMonth(y,m),day=spec==='last'?max:Math.min(max,Math.max(1,Number(spec)||1));
+  return new Date(y,m,day);
+}
+function monthlyDateFromAnchor(y,m,anchor){
+  let desired=anchor.getDate(),max=daysInMonth(y,m);return new Date(y,m,Math.min(desired,max));
+}
+function semimonthlyDatesFrom(start,count=40){
+  let specs=Array.isArray(P.payDays)&&P.payDays.length===2?P.payDays:['15','last'];
+  let out=[],cursor=new Date(start.getFullYear(),start.getMonth(),1),guard=0;
+  while(out.length<count&&guard++<120){
+    let y=cursor.getFullYear(),mo=cursor.getMonth();
+    let dates=specs.map(s=>dateForDaySpec(y,mo,s)).sort((a,b)=>a-b);
+    dates.forEach(d=>{if(d>=start&&!out.some(x=>iso(x)===iso(d))&&out.length<count)out.push(d)});
+    cursor=new Date(y,mo+1,1);
+  }
+  return out;
+}
+function nextPayDates(count=40){
+  let now=today();
+  if(P.payFreq==='semimonthly')return semimonthlyDatesFrom(now,count);
+  let anchor=P.nextPayday?parseDate(P.nextPayday):addDays(now,7),out=[],d=new Date(anchor),guard=0;
+  if(P.payFreq==='weekly'||P.payFreq==='biweekly'){
+    let jump=P.payFreq==='weekly'?7:14;
+    while(d<now&&guard++<300)d=addDays(d,jump);
+    for(let i=0;i<count;i++){out.push(new Date(d));d=addDays(d,jump)}
+    return out;
+  }
+  // Monthly: preserve the intended day-of-month and clamp only in shorter months.
+  let desired=anchor.getDate(),y=anchor.getFullYear(),mo=anchor.getMonth();
+  while(monthlyDateFromAnchor(y,mo,anchor)<now&&guard++<120){mo++;if(mo>11){mo=0;y++}}
+  for(let i=0;i<count;i++){
+    out.push(new Date(y,mo,Math.min(desired,daysInMonth(y,mo))));
+    mo++;if(mo>11){mo=0;y++}
+  }
+  return out;
+}
+function advanceBill(d,f){if(f==='weekly')return addDays(d,7);if(f==='biweekly')return addDays(d,14);if(f==='semimonthly')return addDays(d,15);if(f==='quarterly')return addMonths(d,3);if(f==='semiannual')return addMonths(d,6);if(f==='yearly')return addMonths(d,12);if(f==='once')return addMonths(d,1200);return addMonths(d,1)}
+function occurrences(b,start,end){if(!b.nextDue)return[];let out=[],d=parseDate(b.nextDue),guard=0;if(b.freq==='once')return d>=start&&d<=end?[new Date(d)]:[];while(d<start&&guard++<300)d=advanceBill(d,b.freq);guard=0;while(d<=end&&guard++<300){if(d>=start)out.push(new Date(d));d=advanceBill(d,b.freq)}return out}
+function lifeTotal(){return n(P.life.food)+n(P.life.gas)+n(P.life.other)}
+function paychecksBefore(due,fromDate){
+ return nextPayDates(40).filter(d=>d>=fromDate&&d<=due).length || 1;
+}
+function billFundingForPaycheck(payDate){
+ let horizon=addDays(payDate, Math.max(35,freqDays()*5)), details=[],total=0;
+ P.bills.forEach(b=>{
+   let occ=occurrences(b,payDate,horizon)[0]; if(!occ)return;
+   let checks=paychecksBefore(occ,payDate);
+   let reserve=Math.min(b.amount,b.amount/checks);
+   details.push({name:b.name,due:occ,amount:b.amount,checks,reserve}); total+=reserve;
+ });
+ return {total,details};
+}
+function currentUpcomingFunding(){
+ let pd=nextPayDates(1)[0]||addDays(today(),freqDays());return billFundingForPaycheck(pd);
+}
+function savingsCapacityAcrossUpcomingPaychecks(){
+  let dates=nextPayDates(6);
+  let current=Math.max(0,n(P.paycheck)-currentUpcomingFunding().total-lifeTotal());
+  if(!dates.length)return current;
+  // One unusually bill-heavy paycheck should not collapse every recommendation to $0.
+  // Use the lower end of positive upcoming capacity as a stress guard, while the
+  // Planner still protects a truly tight cycle by reducing what can actually move.
+  let caps=dates.map(pd=>Math.max(0,n(P.paycheck)-billFundingForPaycheck(pd).total-lifeTotal())).sort((a,b)=>a-b);
+  let positive=caps.filter(v=>v>0);
+  if(!positive.length)return current;
+  let idx=Math.floor((positive.length-1)*0.25);
+  return Math.max(0,Math.min(current,positive[idx]));
+}
+function suggestedSavings(){
+  let f=currentUpcomingFunding(),available=Math.max(0,n(P.paycheck)-f.total-lifeTotal());
+  let guarded=savingsCapacityAcrossUpcomingPaychecks();
+  let round5=v=>Math.round(Math.max(0,v)/5)*5;
+  if(available<=0)return {easy:0,balanced:0,push:0,available:0,guarded:0,funding:f};
+  // Recommendations begin with today's real post-essential flexibility, then use
+  // the lower-end upcoming capacity as a guardrail rather than an all-or-nothing gate.
+  let stress=guarded>0?guarded:available;
+  let easy=round5(Math.min(available*.20,Math.max(available*.10,stress*.35)));
+  let balanced=round5(Math.min(available*.35,Math.max(easy,stress*.60)));
+  let push=round5(Math.min(available*.55,Math.max(balanced,stress*.85)));
+  if(easy===0&&available>=5)easy=5;
+  balanced=Math.max(easy,balanced);push=Math.max(balanced,push);
+  return {easy,balanced,push,available,guarded,funding:f};
+}
+function immediateBillsBeforeNextPay(){
+  let start=today(),end=nextPayDates(1)[0]||addDays(start,freqDays());
+  let total=0;
+  P.bills.forEach(b=>{ total += occurrences(b,start,end).reduce((s)=>s+b.amount,0); });
+  return total;
+}
+function suggestedCurrentS2S(){
+  // One source of truth: the same paycheck-plan engine powers the Home answer.
+  let pd=nextPayDates(1)[0]||addDays(today(),freqDays());
+  let plan=paycheckPlan(pd,P.checking+P.cash);
+  return Math.max(0,plan.safeAdd);
+}
+function activityNet(){
+  return (P.s2sActivity||[]).reduce((sum,a)=>{
+    if(a.type==='add') return sum+n(a.amount);
+    if(a.type==='spend' || a.type==='save') return sum-n(a.amount);
+    return sum;
+  },0);
+}
+function ensureS2S(){
+  P.s2sActivity=P.s2sActivity||[];
+  let target=suggestedCurrentS2S();
+
+  // Migration/fix for 1.4.1/1.4.2 profiles:
+  // older builds could preserve a stale $0 S2S balance even after the
+  // underlying checking/bills/life-money plan changed.
+  if(P.s2sAnchor===null || P.s2sAnchor===undefined || Number.isNaN(Number(P.s2sAnchor))){
+    P.s2sAnchor=target;
+    P.s2sBalance=Math.max(0,target+activityNet());
+  }else{
+    // Keep the bubble tied to the actual financial plan. If checking,
+    // bills, payday timing, or essentials change, move S2S by the same
+    // amount while preserving manual +/- activity.
+    let delta=target-P.s2sAnchor;
+    if(Math.abs(delta)>.001){
+      P.s2sBalance=Math.max(0,n(P.s2sBalance)+delta);
+      P.s2sAnchor=target;
+    }
+    if(P.s2sBalance===null || P.s2sBalance===undefined || Number.isNaN(Number(P.s2sBalance))){
+      P.s2sBalance=Math.max(0,target+activityNet());
+    }
+  }
+}
+let currentS2SAction='spend';
+function openS2SAction(type){
+  currentS2SAction=type;s2sAmount.value='';s2sDesc.value='';
+  if(type==='spend'){s2sActionTitle.textContent='What did you spend?';s2sActionCopy.textContent='We’ll subtract it from your live Safe2Spend balance.';s2sAmountLabel.textContent='Amount spent';s2sActionButton.textContent='Subtract';}
+  if(type==='add'){s2sActionTitle.textContent='Add to Safe2Spend';s2sActionCopy.textContent='Use this for refunds, extra cash, or money you want to make available.';s2sAmountLabel.textContent='Amount to add';s2sActionButton.textContent='Add';}
+  if(type==='save'){s2sActionTitle.textContent='Move Safe2Spend to savings';s2sActionCopy.textContent='This lowers your spendable balance and adds to your savings.';s2sAmountLabel.textContent='Amount to save';s2sActionButton.textContent='Move to savings';}
+  s2sM.classList.add('open');
+}
+function applyS2SAction(){
+  ensureS2S();let amt=n(s2sAmount.value);if(!amt)return;
+  let desc=s2sDesc.value.trim(),before=n(P.s2sBalance);
+  if(currentS2SAction==='spend'){
+    amt=Math.min(amt,P.s2sBalance);P.s2sBalance=Math.max(0,P.s2sBalance-amt);
+    P.s2sActivity.unshift({type:'spend',amount:amt,desc:desc||'Spent',date:new Date().toISOString()});
+    setLastChange('Safe2Spend went down',`${desc||'Spending'} used ${money(amt)}. ${money(before)} → ${money(P.s2sBalance)} Safe2Spend.`);
+  }else if(currentS2SAction==='add'){
+    P.s2sBalance+=amt;P.s2sActivity.unshift({type:'add',amount:amt,desc:desc||'Added to Safe2Spend',date:new Date().toISOString()});
+    setLastChange('Safe2Spend went up',`${desc||'Extra money'} added ${money(amt)}. ${money(before)} → ${money(P.s2sBalance)} Safe2Spend.`);
+  }else{
+    amt=Math.min(amt,P.s2sBalance);P.s2sBalance=Math.max(0,P.s2sBalance-amt);P.savings+=amt;
+    P.s2sActivity.unshift({type:'save',amount:amt,desc:desc||'Moved to savings',date:new Date().toISOString()});
+    setLastChange('You moved money to savings',`${money(amt)} moved from Safe2Spend to savings. You still have ${money(P.s2sBalance)} Safe2Spend.`);
+  }
+  P.s2sActivity=P.s2sActivity.slice(0,30);localStorage.setItem(KEY,JSON.stringify(P));closeM('s2sM');render();
+}
+function clearS2SActivity(){if(confirm('Clear the Safe2Spend activity history?')){P.s2sActivity=[];localStorage.setItem(KEY,JSON.stringify(P));render()}}
+function renderS2S(){
+  ensureS2S();
+  currentS2S.textContent=money(P.s2sBalance);
+  let np=nextPayDates(1)[0],days=np?Math.max(1,Math.ceil((np-today())/86400000)):1;
+  currentS2SSub.textContent=`That’s about ${money(P.s2sBalance/days)}/day until your next paycheck if you wanted to spread it evenly. You don’t have to.`;
+  s2sNote.textContent=P.s2sBalance>0?'Spend it, save some, or let it roll forward. The number updates as you track it.':'You’ve used the current Safe2Spend pool. That does not mean you’re “broke” — it means the money left has another job.';
+  if(!P.s2sActivity.length){s2sActivity.innerHTML='<div class="empty">No Safe2Spend activity yet. Use the big bubble above to track spending or move money to savings.</div>';return}
+  s2sActivity.innerHTML=P.s2sActivity.slice(0,8).map(a=>{
+    let sign=a.type==='add'?'+':'−',label=a.type==='save'?'Moved to savings':a.type==='add'?'Added':'Spent';
+    let dt=new Date(a.date).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    return `<div class="activity-item"><div><strong>${esc(a.desc||label)}</strong><br><small>${label} • ${dt}</small></div><strong>${sign}${money(a.amount)}</strong></div>`;
+  }).join('');
+}
+
+function paycheckPlan(payDate,cashBefore){
+ let funding=billFundingForPaycheck(payDate),income=P.paycheck,life=lifeTotal();
+ let save=Math.min(P.savePerPaycheck,Math.max(0,income-funding.total-life));
+ let safeAdd=Math.max(0,income-funding.total-life-save);
+ return {payDate,income,funding,life,save,safeAdd,cashBefore,cashAfter:cashBefore+safeAdd};
+}
+
+
+function toggleDisclosure(id){
+  let el=document.getElementById(id);if(el)el.classList.toggle('open');
+}
+function pct(part,total){return total>0?Math.max(0,Math.min(100,(part/total)*100)):0}
+function setSeg(el,value,total,label){
+  if(!el)return;
+  let w=pct(value,total);
+  el.style.width=Math.max(value>0?7:0,w)+'%';
+  el.textContent=w>=15?label:'';
+  el.title=`${label}: ${money(value)}`;
+}
+function showMoneyJob(job){
+  let pd=nextPayDates(1)[0]||addDays(today(),freqDays());
+  let plan=paycheckPlan(pd,P.checking+P.cash);
+  let text='';
+  if(job==='bills')text=`${money(plan.funding.total)} gets a job before you spend it. It is being prepared for upcoming bills so a big due date doesn’t have to become a surprise.`;
+  if(job==='life')text=`${money(plan.life)} stays available for everyday spending — groceries, gas, meals, transportation and other basics you planned for.`;
+  if(job==='save')text=`${money(plan.save)} goes to savings. ${P.goalName?`At your current pace, it moves you toward ${P.goalName}.`:'It builds savings without taking every flexible dollar.'}`;
+  if(job==='yours')text=`${money(plan.safeAdd)} is the reward at the end of the plan. Bills, everyday spending and savings already got their jobs first.`;
+  if(window.moneyJobExplain)moneyJobExplain.textContent=text;
+}
+function setLastChange(title,text,delta=0){
+  P.lastChange={title,text,delta,date:new Date().toISOString()};
+}
+function renderLastChange(){
+  if(!window.changeCard)return;
+  if(!P.lastChange){changeCard.classList.remove('show');return}
+  changeCard.classList.add('show');
+  changeTitle.textContent=P.lastChange.title||'What changed';
+  changeText.textContent=P.lastChange.text||'Your plan was updated.';
+}
+function goalPaces(){
+  let s=suggestedSavings();
+  return [
+    {key:'easy',label:'Comfortable',value:s.easy},
+    {key:'balanced',label:'Balanced — Recommended',value:s.balanced},
+    {key:'push',label:'Faster',value:s.push}
+  ];
+}
+function goalEtaDate(){
+  if(!n(P.goalAmount)||n(P.savings)>=n(P.goalAmount))return null;
+  if(!n(P.savePerPaycheck))return null;
+  let left=Math.max(0,n(P.goalAmount)-n(P.savings));
+  let checks=Math.ceil(left/n(P.savePerPaycheck));
+  return nextPayDates(Math.max(checks,1))[Math.max(0,checks-1)]||null;
+}
+function renderGoal(){
+  if(!window.goalCard)return;
+  let total=n(P.goalAmount),saved=n(P.savings);
+  goalTitle.textContent=P.goalName||'Build savings';
+  let percent=total?pct(saved,total):0;
+  goalPercent.textContent=total?`${Math.round(percent)}%`:'Growing';
+  goalProgressBar.style.width=(total?percent:Math.min(100,saved/10))+'%';
+  goalProgressText.textContent=total?`${money(saved)} of ${money(total)}`:`${money(saved)} saved`;
+  let eta=goalEtaDate();
+  if(total&&saved>=total)goalEta.textContent='Goal reached ✓';
+  else if(eta)goalEta.textContent=`On pace for ${eta.toLocaleDateString(undefined,{month:'short',year:'numeric'})}`;
+  else goalEta.textContent='Pick a pace that feels livable';
+  let opts=goalPaces();
+  let matched=opts.find(o=>Math.abs(o.value-n(P.savePerPaycheck))<1);
+  let extras='';
+  if(P.savePace==='custom'&&!matched)extras=`<option value="custom" selected>Custom • ${money(P.savePerPaycheck)}/paycheck</option>`;
+  if(P.savePace==='none'||n(P.savePerPaycheck)===0)extras=`<option value="none" selected>Not right now • $0/paycheck</option>`;
+  goalPaceSelect.innerHTML=opts.map(o=>`<option value="${o.key}" ${matched&&matched.key===o.key?'selected':''}>${o.label} • ${money(o.value)}/paycheck</option>`).join('')+extras;
+}
+function changeGoalPace(key){
+  if(key==='custom'||key==='none')return;
+  let o=goalPaces().find(x=>x.key===key);if(!o)return;
+  let old=n(P.savePerPaycheck);P.savePace=key;P.savePerPaycheck=o.value;P.s2sAnchor=null;
+  setLastChange('Your savings pace changed',`${money(old)} → ${money(P.savePerPaycheck)} per paycheck. Safe2Spend recalculated the rest of the plan around it.`);
+  localStorage.setItem(KEY,JSON.stringify(P));render();
+}
+function isPaydayToday(){
+  let d=nextPayDates(1)[0];return d&&iso(d)===iso(today());
+}
+function occurrenceKey(b,d){return `${b.name}|${b.amount}|${iso(d)}`}
+function nextOccurrenceForBill(b,fromDate){
+  if(!b.nextDue)return null;
+  let d=parseDate(b.nextDue),guard=0;
+  while(d<fromDate && guard++<300)d=advanceBill(d,b.freq);
+  return d;
+}
+function payDatesBetween(start,end){return nextPayDates(80).filter(d=>d>=start&&d<=end)}
+function reserveNeedForBill(b,payDate,reservedByKey){
+  let due=nextOccurrenceForBill(b,payDate);
+  if(!due)return {key:null,due:null,amount:0};
+  let key=occurrenceKey(b,due),already=n(reservedByKey[key]);
+  let remaining=Math.max(0,n(b.amount)-already);
+  let checks=Math.max(1,payDatesBetween(payDate,due).length);
+  return {key,due,amount:remaining/checks};
+}
+function simulateWeeklyOutlook(weeks=6){
+  ensureS2S();
+  const start=today(),payDates=nextPayDates(80);
+  let checking=n(P.checking)+n(P.cash),savings=n(P.savings),reservedByKey={},results=[];
+
+  for(let w=0;w<weeks;w++){
+    const ws=addDays(start,w*7),we=addDays(ws,6);
+    const startChecking=checking,startSavings=savings;
+    let income=0,billsDue=0,reserveAdded=0,savingsAdded=0,lifeSpent=0;
+    let events=[],reserveDetail=[];
+
+    for(let d=new Date(ws);d<=we;d=addDays(d,1)){
+      let day=new Date(d);
+
+      if(payDates.some(pd=>iso(pd)===iso(day))){
+        checking+=n(P.paycheck);income+=n(P.paycheck);
+        events.push({type:'pay',name:'Paycheck',date:new Date(day),amount:n(P.paycheck)});
+
+        P.bills.forEach(b=>{
+          let r=reserveNeedForBill(b,day,reservedByKey);
+          if(!r.key||r.amount<=0)return;
+          let add=Math.min(r.amount,Math.max(0,n(b.amount)-n(reservedByKey[r.key])));
+          reservedByKey[r.key]=n(reservedByKey[r.key])+add;
+          reserveAdded+=add;
+          reserveDetail.push({name:b.name||'Bill',amount:add,due:r.due});
+        });
+
+        let reserveNow=Object.values(reservedByKey).reduce((a,v)=>a+n(v),0);
+        let save=Math.min(n(P.savePerPaycheck),Math.max(0,checking-reserveNow));
+        checking-=save;savings+=save;savingsAdded+=save;
+
+        let life=Math.min(lifeTotal(),Math.max(0,checking-reserveNow));
+        checking-=life;lifeSpent+=life;
+      }
+
+      P.bills.forEach(b=>{
+        occurrences(b,day,day).forEach(due=>{
+          let amt=n(b.amount),key=occurrenceKey(b,due);
+          checking-=amt;billsDue+=amt;delete reservedByKey[key];
+          events.push({type:'bill',name:b.name||'Bill',date:new Date(day),amount:amt});
+        });
+      });
+    }
+
+    checking=Math.max(0,checking);savings=Math.max(0,savings);
+    let reserveTotal=Object.values(reservedByKey).reduce((a,v)=>a+n(v),0);
+    reserveTotal=Math.min(reserveTotal,checking);
+    let availableChecking=Math.max(0,checking-reserveTotal);
+    let cycleSafe=w===0?n(P.s2sBalance):(income>0?Math.max(0,income-reserveAdded-lifeSpent-savingsAdded):0);
+
+    let status='good';
+    if(cycleSafe===0&&income>0)status='tight';
+    else if(reserveAdded>income*.45||billsDue>income*.6)status='watch';
+
+    results.push({index:w,start:ws,end:we,startChecking,startSavings,checking,savings,cycleSafe,availableChecking,
+      income,billsDue,reserveAdded,reserveTotal,savingsAdded,lifeSpent,events,reserveDetail,status});
+  }
+  return results;
+}
+let plannerSelectedWeek=0;
+function selectPlannerWeek(i){
+  plannerSelectedWeek=Math.max(0,Math.min(5,i));renderWeeklyOutlook();
+}
+function renderWeeklyOutlook(){
+  let weeks=simulateWeeklyOutlook(6);
+  if(!weeks.length)return;
+  plannerSelectedWeek=Math.min(plannerSelectedWeek,weeks.length-1);
+
+  let heavy=weeks.reduce((a,b)=>b.billsDue>a.billsDue?b:a,weeks[0]);
+  let lowest=weeks.reduce((a,b)=>b.availableChecking<a.availableChecking?b:a,weeks[0]);
+  let hasTight=weeks.some(w=>w.status==='tight');
+
+  plannerHeadline.textContent=hasTight?'There’s a tighter week ahead — and you can see it early.':'Your next few weeks look manageable.';
+  plannerStatus.textContent=hasTight?'Plan carefully':'On track';
+  plannerStatus.className='status '+(hasTight?'watch':'good');
+  plannerEncouragement.textContent=hasTight
+    ?'Nothing here is a judgment. Planner is simply showing where your money gets tighter so you can prepare before that week arrives.'
+    :'You’re giving future bills a job before they arrive while still protecting money for today.';
+
+  plannerWeekStrip.innerHTML=weeks.map((w,i)=>{
+    let date=i===0?'This week':w.start.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    let stat=w.status==='good'?'Looking good':w.status==='watch'?'Busy week':'Tighter week';
+    return `<button class="week-chip ${i===plannerSelectedWeek?'active':''}" onclick="selectPlannerWeek(${i})">
+      <small>${date}</small><strong>${stat}</strong><span class="chip-s2s">${money(w.cycleSafe)} S2S</span>
+    </button>`;
+  }).join('');
+
+  let w=weeks[plannerSelectedWeek];
+  let label=plannerSelectedWeek===0?'This week':`${w.start.toLocaleDateString(undefined,{month:'short',day:'numeric'})} – ${w.end.toLocaleDateString(undefined,{month:'short',day:'numeric'})}`;
+  let stat=w.status==='good'?'Looking good':w.status==='watch'?'Busy, but planned':'Needs a little care';
+  let simpleSentence=w.status==='good'
+    ?`You should finish this week with about ${money(w.checking)} in checking and ${money(w.savings)} in savings. ${money(w.cycleSafe)} is the Safe2Spend for this cycle.`
+    :w.status==='watch'
+      ?`This is a busier money week. Safe2Spend is about ${money(w.cycleSafe)}, while ${money(w.billsDue)} of listed bills are scheduled to be paid.`
+      :`This week has less breathing room. The useful part is that you can see it now instead of finding out at the last minute.`;
+
+  let events=w.events.length?w.events.map(e=>`<div class="timeline-item">
+    <div class="timeline-date">${e.date.toLocaleDateString(undefined,{weekday:'short',month:'numeric',day:'numeric'})}</div>
+    <div class="timeline-main"><strong>${esc(e.name)}</strong><small>${e.type==='pay'?'Money coming in':'Bill being paid'}</small></div>
+    <div class="timeline-amt ${e.type==='pay'?'in':'out'}">${e.type==='pay'?'+':'−'}${money(e.amount)}</div>
+  </div>`).join(''):`<div class="empty" style="padding:10px 0">No paycheck or bill is scheduled to hit this week.</div>`;
+
+  let reserveRows=w.reserveDetail.length?w.reserveDetail.map(r=>`<div class="plain-row"><span>${esc(r.name)} <small class="muted">• for ${r.due.toLocaleDateString(undefined,{month:'short',day:'numeric'})}</small></span><strong>${money(r.amount)}</strong></div>`).join(''):`<div class="mini">No extra money needs to be prepared for future bills this week.</div>`;
+
+  plannerWeekDetail.innerHTML=`<div class="week-detail">
+    <div class="week-detail-head"><div class="spread"><div><h3>${label}</h3><p>${stat}</p></div><span class="week-status ${w.status}">${stat}</span></div></div>
+    <div class="week-answer"><strong>${money(w.cycleSafe)} Safe2Spend</strong><p>${simpleSentence}</p></div>
+    <div class="week-simple">
+      <div><small>Checking after week</small><strong>${money(w.checking)}</strong></div>
+      <div><small>Savings after week</small><strong>${money(w.savings)}</strong></div>
+      <div><small>Bills paid</small><strong>${money(w.billsDue)}</strong></div>
+    </div>
+    <div class="disclosure" id="weekDisclosure">
+      <button class="disclosure-btn" style="margin:0 16px;width:calc(100% - 32px)" onclick="toggleDisclosure('weekDisclosure')"><span>Show how we got there</span><span class="chev">⌄</span></button>
+      <div class="disclosure-body">
+        <div class="timeline15">${events}</div>
+        <div class="detail-grid">
+          <div class="plain-row"><span>Set aside now for later bills</span><strong>${money(w.reserveAdded)}</strong></div>
+          <div class="plain-row"><span>Everyday spending</span><strong>${money(w.lifeSpent)}</strong></div>
+          <div class="plain-row"><span>Move to savings</span><strong>${money(w.savingsAdded)}</strong></div>
+          <div class="plain-row"><span>Checking already has a future job</span><strong>${money(w.reserveTotal)}</strong></div>
+          <div class="plain-row"><span>Checking not needed for upcoming bills yet</span><strong>${money(w.availableChecking)}</strong></div>
+        </div>
+        <div class="detail-grid"><div class="smart-add"><strong>Preparing for later:</strong>${reserveRows}</div></div>
+      </div>
+    </div>
+  </div>`;
+
+  let msg='';
+  if(heavy.billsDue>0)msg+=`Your busiest bill week starts ${heavy.start.toLocaleDateString(undefined,{month:'short',day:'numeric'})}, with about ${money(heavy.billsDue)} due. `;
+  msg+=`Across this six-week view, your lowest checking amount not already needed for future bills is about ${money(lowest.availableChecking)}. `;
+  msg+=hasTight?'That’s the week I’d protect before increasing spending or savings.':'You currently have breathing room in the plan.';
+  aheadAdvisor.textContent=msg;
+
+  let end=weeks[weeks.length-1];
+  aheadMetrics.innerHTML=`<div class="plain-row"><span>Checking in about 6 weeks</span><strong>${money(end.checking)}</strong></div>
+  <div class="plain-row"><span>Savings in about 6 weeks</span><strong>${money(end.savings)}</strong></div>`;
+}
+function render(){
+  ensureS2S();
+  let pd=nextPayDates(1)[0]||addDays(today(),freqDays());
+  let plan=paycheckPlan(pd,P.checking+P.cash);
+  let total=Math.max(1,n(plan.income));
+
+  renderS2S();
+  renderLastChange();
+  renderGoal();
+
+  dashChecking.textContent=money(P.checking+P.cash);
+  dashSavings.textContent=money(P.savings);
+  let spoken=immediateBillsBeforeNextPay();
+  checkingExplain.innerHTML=spoken>0
+    ?`Of your current checking, <strong>${money(spoken)}</strong> is needed for bills before the next paycheck. Safe2Spend does not treat that as free money.`
+    :`Nothing you entered is due before the next paycheck. Your Safe2Spend number still protects everyday spending and your savings plan.`;
+
+  let payday=isPaydayToday();
+  paydayKicker.textContent=payday?'PAYDAY':'NEXT PAYCHECK';
+  paydayTitle.textContent=payday?'You got paid. Here’s the move.':pd.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
+  paydayIntro.textContent=payday
+    ?`${money(plan.income)} came in. Give every dollar one job, then enjoy what’s yours.`
+    :`${money(plan.income)} is expected. Here is the simple split I’d use.`;
+  paydayCard.classList.toggle('payday-celebrate',payday);
+  nextIncome.textContent='+ '+money(plan.income);
+  nextBills.textContent=money(plan.funding.total);
+  nextLife.textContent=money(plan.life);
+  nextSaving.textContent=money(plan.save);
+  nextSafe.textContent=money(plan.safeAdd);
+  paydaySafe.textContent=money(plan.safeAdd);
+  paydayUntil.textContent=`until ${nextPayDates(2)[1]?nextPayDates(2)[1].toLocaleDateString(undefined,{month:'short',day:'numeric'}):'next payday'}`;
+
+  setSeg(segBills,plan.funding.total,total,'Bills');
+  setSeg(segLife,plan.life,total,'Everyday');
+  setSeg(segSave,plan.save,total,'Savings');
+  setSeg(segYours,plan.safeAdd,total,'Yours');
+  showMoneyJob('yours');
+
+  advisorText.textContent=advisor(plan);
+  renderFunding(plan.funding);
+  renderForecast();
+  renderSetup();
+  renderWeeklyOutlook();
+  freqLabel.textContent=freqName();
+}
+function advisor(plan){
+  let biggest=plan.funding.details.slice().sort((a,b)=>b.reserve-a.reserve)[0];
+  if(plan.safeAdd<=0){
+    return `This paycheck is fully spoken for by bills, everyday spending and the plan you chose. I’d keep savings flexible this cycle before letting an important bill become late.`;
+  }
+  let sentence=`After bills, everyday spending and ${money(plan.save)} of savings, you still have ${money(plan.safeAdd)} that is genuinely yours to use. `;
+  if(biggest)sentence+=`${biggest.name} is the biggest thing we’re preparing for right now, so ${money(biggest.reserve)} of this paycheck gets a job there. `;
+  sentence+=`You do not need to spend the Safe2Spend amount — it can stay there, roll forward, or go to savings.`;
+  return sentence;
+}
+function renderFunding(f){
+  fundingList.innerHTML=f.details.length?`<div class="mini" style="margin:7px 0">This is the money inside “Bills.” You don’t need to memorize it — Safe2Spend is just showing why it has a job.</div>`+f.details.map(x=>`<div class="row"><div class="meta"><strong>${esc(x.name)}</strong><small>${money(x.amount)} due ${x.due.toLocaleDateString(undefined,{month:'short',day:'numeric'})} • ${x.checks} paycheck${x.checks===1?'':'s'} to prepare</small></div><div class="amt">${money(x.reserve)}<br><small class="muted">from next check</small></div></div>`).join(''):`<div class="empty">No upcoming bill money needs to be prepared from the next paycheck.</div>`;
+}
+function renderCycles(){
+ let pays=nextPayDates(6),cash=P.checking+P.cash;
+ cycleList.innerHTML=pays.map((d,i)=>{let p=paycheckPlan(d,cash);cash=p.cashAfter;let ev=`<div class="event"><span class="in">Paycheck</span><strong class="in">+ ${money(p.income)}</strong></div><div class="event"><span>Bill funding</span><strong class="out">− ${money(p.funding.total)}</strong></div><div class="event"><span>Everyday essentials</span><strong class="out">− ${money(p.life)}</strong></div><div class="event"><span>Savings</span><strong class="out">− ${money(p.save)}</strong></div>`;return `<div class="cycle"><div class="cycle-top"><div><h4>${d.toLocaleDateString(undefined,{month:'short',day:'numeric'})}</h4><small class="muted">${i?'Next cycle':'Next paycheck'}</small></div><div><div class="result">${money(p.safeAdd)}</div><small class="muted">Safe2Spend added</small></div></div>${ev}</div>`}).join('');
+}
+function projectedSavings(daysAhead){let end=addDays(today(),daysAhead),pays=nextPayDates(40).filter(d=>d<=end).length;return P.savings+pays*P.savePerPaycheck}
+function renderForecast(){let endMonth=new Date(today().getFullYear(),today().getMonth()+1,0),dm=Math.max(0,Math.round((endMonth-today())/86400000));fm.textContent=money(projectedSavings(dm));f3.textContent=money(projectedSavings(90));f6.textContent=money(projectedSavings(180));fy.textContent=money(projectedSavings(365))}
+function renderSetup(){setupSummary.innerHTML=`<div class="row"><div class="meta"><strong>Checking + cash</strong><small>Current everyday cash</small></div><div class="amt">${money(P.checking+P.cash)}</div></div><div class="row"><div class="meta"><strong>Savings</strong><small>Current saved amount</small></div><div class="amt">${money(P.savings)}</div></div><div class="row"><div class="meta"><strong>Paycheck</strong><small>${freqName()}</small></div><div class="amt">${money(P.paycheck)}</div></div><div class="row"><div class="meta"><strong>Everyday spending</strong><small>Per paycheck</small></div><div class="amt">${money(lifeTotal())}</div></div><div class="row"><div class="meta"><strong>Savings pace</strong><small>Per paycheck</small></div><div class="amt">${money(P.savePerPaycheck)}</div></div>`}
+function go(id,b){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active')}
+function payDayOptions(selected){let opts=[];for(let i=1;i<=31;i++)opts.push(`<option value="${i}" ${String(selected)===String(i)?'selected':''}>${ordinal(i)}</option>`);opts.push(`<option value="last" ${selected==='last'?'selected':''}>Last day</option>`);return opts.join('')}
+function ordinal(n){let v=n%100;return n+(v>=11&&v<=13?'th':{1:'st',2:'nd',3:'rd'}[n%10]||'th')}
+function populatePayDaySelectors(){
+  let days=Array.isArray(P.payDays)&&P.payDays.length===2?P.payDays:['15','last'];
+  if(window.semiDay1){semiDay1.innerHTML=payDayOptions(days[0]);semiDay2.innerHTML=payDayOptions(days[1])}
+  if(window.esemiDay1){esemiDay1.innerHTML=payDayOptions(days[0]);esemiDay2.innerHTML=payDayOptions(days[1])}
+}
+function payDaySpecsCanCollide(a,b){
+ if(a===b)return true;
+ let av=a==='last'?99:Number(a),bv=b==='last'?99:Number(b);
+ if(a==='last'&&Number(b)>=28)return true;
+ if(b==='last'&&Number(a)>=28)return true;
+ return Number.isFinite(av)&&Number.isFinite(bv)&&av>=29&&bv>=29;
+}
+function syncSemiPaydays(){
+ if(window.semiDay1&&window.semiDay2){
+   P.payDays=[semiDay1.value,semiDay2.value];
+   if(window.semiPayError)semiPayError.textContent=payDaySpecsCanCollide(semiDay1.value,semiDay2.value)?'Choose two paydays that stay separate in shorter months — for example, 15th and Last day.':'';
+ }
+}
+function syncPayScheduleUI(){
+  let semi=P.payFreq==='semimonthly';
+  if(window.semiPaydays)semiPaydays.classList.toggle('show',semi);
+  if(window.nextPaySection)nextPaySection.style.display=semi?'none':'block';
+  document.querySelectorAll('#freqs .choice').forEach(btn=>btn.classList.toggle('active',btn.getAttribute('onclick')?.includes(`'${P.payFreq}'`)));
+}
+function pickFreq(f,e){P.payFreq=f;document.querySelectorAll('#freqs .choice').forEach(x=>x.classList.remove('active'));e.classList.add('active');syncPayScheduleUI()}
+function syncEditPaySchedule(){
+  let semi=window.efreq&&efreq.value==='semimonthly';
+  if(window.editSemiDays)editSemiDays.classList.toggle('show',semi);
+  if(window.editNextPayField)editNextPayField.style.display=semi?'none':'block';
+}
+const BILL_META={
+ 'Rent / Mortgage':{icon:'🏠',freq:'monthly'},'Car payment':{icon:'🚗',freq:'monthly'},'Auto insurance':{icon:'🛡️',freq:'monthly'},'Health insurance':{icon:'❤️',freq:'monthly'},'Phone':{icon:'📱',freq:'monthly'},'Internet':{icon:'🌐',freq:'monthly'},'Electricity':{icon:'⚡',freq:'monthly'},'Gas utility':{icon:'🔥',freq:'monthly'},'Water':{icon:'💧',freq:'monthly'},'Credit card minimum':{icon:'💳',freq:'monthly'},'Student loan':{icon:'🎓',freq:'monthly'},'Subscription':{icon:'🔁',freq:'monthly'},'Childcare':{icon:'👶',freq:'monthly'},'Pet care':{icon:'🐾',freq:'monthly'},'Other bill':{icon:'🧾',freq:'monthly'}
+};
+let nextBillEntryId=1;
+function billMeta(name){return BILL_META[name]||{icon:'🧾',freq:'monthly'}}
+function recurrenceOptions(selected='monthly'){return [['weekly','Weekly'],['biweekly','Every 2 weeks'],['semimonthly','Twice a month'],['monthly','Monthly'],['quarterly','Every 3 months'],['semiannual','Every 6 months'],['yearly','Yearly'],['once','One time']].map(([v,t])=>`<option value="${v}" ${v===selected?'selected':''}>${t}</option>`).join('')}
+function recurrenceLabel(f){return {weekly:'Weekly',biweekly:'Every 2 weeks',semimonthly:'Twice a month',monthly:'Monthly',quarterly:'Every 3 months',semiannual:'Every 6 months',yearly:'Yearly',once:'One time'}[f]||'Monthly'}
+function recurrenceMonthlyFactor(f){return {weekly:52/12,biweekly:26/12,semimonthly:2,monthly:1,quarterly:1/3,semiannual:1/6,yearly:1/12,once:0}[f]??1}
+function existingBillNames(){return [...document.querySelectorAll('#obills .obn')].map(x=>x.value.trim().toLowerCase()).filter(Boolean)}
+function startBillComposer(){
+ let name=obillPicker.value;if(!name){cancelBillComposer(false);return}
+ let m=billMeta(name),other=name==='Other bill';
+ billComposer.className='bill-composer open';
+ billComposer.innerHTML=`<div class="composer-head"><div class="composer-title"><span class="bill-icon">${m.icon}</span><div><strong>${esc(name)}</strong><small>Tell us what Safe2Spend needs to plan for it.</small></div></div><button type="button" class="composer-cancel" onclick="cancelBillComposer()">Cancel</button></div>
+ <div class="field bill-other-name ${other?'show':''}"><label>What’s this bill called?</label><div class="input"><input id="newBillName" value="${other?'':esc(name)}" placeholder="Gym membership" oninput="checkBillComposer()"></div></div>
+ <div class="grid2"><div class="field"><label>Amount</label><div class="input"><span>$</span><input id="newBillAmount" inputmode="decimal" placeholder="0" oninput="checkBillComposer()"></div></div><div class="field"><label>Next due date</label><div class="input"><input id="newBillDue" type="date" onchange="checkBillComposer()"></div></div></div>
+ <div class="field"><label>Repeats</label><div class="input"><select id="newBillFreq" onchange="checkBillComposer()">${recurrenceOptions(m.freq)}</select></div></div>
+ <div id="duplicateBillNote" class="duplicate-note"></div><div id="composerError" class="composer-error"></div>
+ <div class="composer-actions"><button id="addBillBtn" class="primary full" type="button" onclick="commitBillComposer()" disabled>+ Add this bill</button><div class="composer-help">You can edit this anytime. Safe2Spend only uses it after you add it.</div></div>`;
+ checkBillComposer();setTimeout(()=>{let el=other?document.getElementById('newBillName'):document.getElementById('newBillAmount');if(el)el.focus()},0)
+}
+function cancelBillComposer(reset=true){billComposer.className='bill-composer';billComposer.innerHTML='';if(reset)obillPicker.value=''}
+function composerBillName(){let picked=obillPicker.value;if(picked==='Other bill')return (document.getElementById('newBillName')?.value||'').trim();return picked}
+function checkBillComposer(){
+ let name=composerBillName(),amount=n(document.getElementById('newBillAmount')?.value),due=document.getElementById('newBillDue')?.value,freq=document.getElementById('newBillFreq')?.value;
+ let btn=document.getElementById('addBillBtn'),err=document.getElementById('composerError'),dup=document.getElementById('duplicateBillNote');if(!btn)return;
+ let valid=!!name&&amount>0&&!!due&&!!freq;btn.disabled=!valid;err.textContent='';
+ if(dup){let duplicate=name&&existingBillNames().includes(name.toLowerCase());dup.classList.toggle('show',!!duplicate);dup.textContent=duplicate?`You already have a ${name} bill. That’s okay if this is another one.`:''}
+}
+function commitBillComposer(){
+ let name=composerBillName(),amount=n(newBillAmount.value),due=newBillDue.value,freq=newBillFreq.value;
+ if(!name){composerError.textContent='What should we call this bill?';return}if(!(amount>0)){composerError.textContent='How much is this bill?';return}if(!due){composerError.textContent='When is this bill due next?';return}
+ addOBill(name,amount,due,freq,false,nextBillEntryId++);billAddStatus.textContent=`✓ ${name} added`;cancelBillComposer();setTimeout(()=>{if(billAddStatus.textContent.includes(name))billAddStatus.textContent=''},2600)
+}
+function updateOBillCount(){
+ if(!window.obillHeading)return;let items=[...document.querySelectorAll('#obills .bill-item')],c=items.length;obillHeading.textContent=`Your bills (${c})`;
+ let monthly=items.reduce((sum,item)=>sum+n(item.querySelector('.oba')?.value)*recurrenceMonthlyFactor(item.querySelector('.obf')?.value),0);
+ obillMonthly.textContent=c?(monthly?`About ${money(monthly)}/month in recurring bills`:`${c} bill${c===1?'':'s'} added`):'No bills added yet.';
+ if(window.billReviewToggle){billReviewToggle.disabled=!c;billReviewToggle.innerHTML=c?`Review bills <span>›</span>`:'Review bills <span>›</span>'}
+ if(!c){window.billReviewPanel?.classList.remove('open');if(!obills.querySelector('.bill-empty'))obills.innerHTML='<div class="bill-empty">No bills yet. Choose a type above to add your first one.</div>'}
+}
+function toggleBillReview(force){if(!window.billReviewPanel)return;let open=typeof force==='boolean'?force:!billReviewPanel.classList.contains('open');billReviewPanel.classList.toggle('open',open);if(open)setTimeout(()=>billReviewPanel.scrollIntoView({behavior:'smooth',block:'nearest'}),30)}
+function paychecksPerMonth(){return P.payFreq==='weekly'?52/12:P.payFreq==='biweekly'?26/12:P.payFreq==='semimonthly'?2:1}
+function everydayToPaycheck(amount,basis){return n(amount)}
+let everydayBreakdownDraft=null;
+function invalidateEverydayBreakdown(){everydayBreakdownDraft=null}
+function syncEverydaySummary(){let amountEl=document.getElementById('oeverydayAmount'),summary=document.getElementById('everydayNormalized');if(!amountEl||!summary)return;summary.textContent=n(amountEl.value)>0?`${money(n(amountEl.value))} will stay available from each paycheck for everyday expenses.`:'Safe2Spend will protect this amount from each paycheck for everyday expenses.'}
+function openEverydayEstimator(){let modal=document.getElementById('everydayEstimateM');if(!modal)return;['estFood','estGas','estMeals','estHouse','estOther'].forEach(id=>{let el=document.getElementById(id);if(el)el.value=''});updateEverydayEstimateTotal();modal.classList.add('open');enhanceAllInputs(modal)}
+function updateEverydayEstimateTotal(){let total=['estFood','estGas','estMeals','estHouse','estOther'].reduce((sum,id)=>sum+n(document.getElementById(id)?.value),0),totalEl=document.getElementById('everydayEstimateTotal'),basisEl=document.getElementById('everydayEstimateTotalBasis');if(totalEl)totalEl.textContent=money(total);if(basisEl)basisEl.textContent='Until next paycheck'}
+function useEverydayEstimate(){let parts={food:n(document.getElementById('estFood')?.value),gas:n(document.getElementById('estGas')?.value),meals:n(document.getElementById('estMeals')?.value),house:n(document.getElementById('estHouse')?.value),other:n(document.getElementById('estOther')?.value)},total=Object.values(parts).reduce((a,b)=>a+b,0),amountEl=document.getElementById('oeverydayAmount');everydayBreakdownDraft={basis:'paycheck',parts};if(amountEl)amountEl.value=total?Number(total).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'';syncEverydaySummary();closeM('everydayEstimateM');}
+function captureEveryday(){let amountEl=document.getElementById('oeverydayAmount');if(!amountEl)return;let amount=n(amountEl.value);P.everydayInput={amount,basis:'paycheck'};if(everydayBreakdownDraft){let q=everydayBreakdownDraft.parts;P.life={food:n(q.food),gas:n(q.gas),other:n(q.meals)+n(q.house)+n(q.other)}}else P.life={food:0,gas:0,other:amount}}
+let allowZeroEverydayOnce=false;
+function continueWithZeroEveryday(){allowZeroEverydayOnce=true;closeM('everydayZeroM');nextStep()}
+function closeOtherBillEditors(except){document.querySelectorAll('#obills .bill-editor.open').forEach(ed=>{if(ed!==except)ed.classList.remove('open')})}
+function billRowRefresh(item){if(!item)return;let nEl=item.querySelector('.obn'),aEl=item.querySelector('.oba'),dEl=item.querySelector('.obd'),fEl=item.querySelector('.obf');let name=nEl.value||'Bill';item.querySelector('.bill-row-name').textContent=name;item.querySelector('.bill-icon').textContent=billMeta(name).icon;let detail=[];if(aEl.value)detail.push(money(n(aEl.value)));if(dEl.value){let d=parseDate(dEl.value);detail.push(`Due ${d.toLocaleDateString(undefined,{month:'short',day:'numeric'})}`)}if(fEl.value)detail.push(recurrenceLabel(fEl.value));item.querySelector('.bill-row-detail').textContent=detail.join(' · ')||'Tap Edit to finish';updateOBillCount()}
+function toggleBillEditor(btn){let item=btn.closest('.bill-item'),ed=item.querySelector('.bill-editor'),willOpen=!ed.classList.contains('open');closeOtherBillEditors(ed);ed.classList.toggle('open',willOpen);if(willOpen)setTimeout(()=>item.querySelector('.oba')?.focus(),0)}
+function saveBillEdit(btn){let item=btn.closest('.bill-item');let name=item.querySelector('.obn').value.trim(),amount=n(item.querySelector('.oba').value),due=item.querySelector('.obd').value;if(!name||!amount||!due){let msg=item.querySelector('.bill-edit-error');msg.textContent=!name?'Give this bill a name.':!amount?'Enter the bill amount.':'Choose the next due date.';return}item.querySelector('.bill-edit-error').textContent='';billRowRefresh(item);item.querySelector('.bill-editor').classList.remove('open');billAddStatus.textContent=`✓ ${name} updated`;setTimeout(()=>billAddStatus.textContent='',2200)}
+function removeOBill(btn){let item=btn.closest('.bill-item'),name=item.querySelector('.obn')?.value||'Bill';item.remove();updateOBillCount();billAddStatus.textContent=`${name} removed`;setTimeout(()=>billAddStatus.textContent='',2000)}
+function addOBill(name='',amount='',nextDue='',freq='monthly',openEditor=false,entryId=null){
+ let empty=obills.querySelector('.bill-empty');if(empty)empty.remove();let id=entryId||nextBillEntryId++;nextBillEntryId=Math.max(nextBillEntryId,id+1);let m=billMeta(name);
+ let item=document.createElement('div');item.className='bill-item';item.dataset.entryId=id;
+ item.innerHTML=`<div class="bill-summary-row"><span class="bill-number">#${id}</span><div class="bill-main" onclick="toggleBillEditor(this.closest('.bill-item').querySelector('.bill-edit-btn'))"><span class="bill-icon">${m.icon}</span><div class="bill-copy"><strong class="bill-row-name">${esc(name||'Bill')}</strong><small class="bill-row-detail"></small></div></div><button class="bill-edit-btn" type="button" onclick="toggleBillEditor(this)">Edit</button></div>
+ <div class="bill-editor ${openEditor?'open':''}"><p class="bill-saved-note">Edit the details below, then save your changes.</p><div class="grid"><div class="field"><label>Bill name</label><div class="input"><input class="obn" value="${esc(name)}" placeholder="Bill name"></div></div><div class="field"><label>Amount</label><div class="input"><span>$</span><input class="oba" inputmode="decimal" value="${amount}"></div></div></div><div class="grid2"><div class="field"><label>Next due date</label><div class="input"><input class="obd" type="date" value="${nextDue}"></div></div><div class="field"><label>Repeats</label><div class="input"><select class="obf">${recurrenceOptions(freq)}</select></div></div></div><div class="bill-edit-error composer-error"></div><div class="bill-editor-actions"><button class="primary" type="button" onclick="saveBillEdit(this)">Save changes</button><button class="bill-delete" type="button" onclick="removeOBill(this)">Delete bill</button></div></div>`;
+ obills.prepend(item);billRowRefresh(item);updateOBillCount();
+}
+function setOpeningBalanceState(kind,open){
+ let shell=document.getElementById(kind==='savings'?'savingsOptional':'cashOptional');if(!shell)return;
+ shell.classList.toggle('active',!!open);let trigger=shell.querySelector('.optional-trigger');if(trigger)trigger.setAttribute('aria-expanded',open?'true':'false');
+ if(open){setTimeout(()=>shell.querySelector('input')?.focus(),0)}
+}
+function toggleOpeningBalance(kind){let shell=document.getElementById(kind==='savings'?'savingsOptional':'cashOptional');setOpeningBalanceState(kind,!shell?.classList.contains('active'))}
+function removeOpeningBalance(kind){let input=document.getElementById(kind==='savings'?'osavings':'ocash');if(input)input.value='';setOpeningBalanceState(kind,false)}
+function openingStepChanged(){let btn=document.getElementById('openingContinue');if(btn)btn.disabled=!(n(document.getElementById('ocheck')?.value)>0)}
+function syncOpeningStep(){
+ if(n(document.getElementById('osavings')?.value)>0)setOpeningBalanceState('savings',true);
+ if(n(document.getElementById('ocash')?.value)>0)setOpeningBalanceState('cash',true);
+ openingStepChanged();
+}
+function capture(){
+ P.checking=n(ocheck.value);P.savings=n(osavings.value);P.cash=n(ocash.value);P.payFreq=P.payFreq||'weekly';
+ if(P.payFreq==='semimonthly'){syncSemiPaydays();let np=nextPayDates(1)[0];P.nextPayday=np?iso(np):''}else P.nextPayday=onextpay.value;
+ P.paycheck=n(opayamt.value);captureEveryday();P.goalName=(document.getElementById('ogoalName')?.value||P.goalName||'').trim();P.goalType=document.getElementById('goalTypeValue')?.value||P.goalType||'';P.goalAmount=n(document.getElementById('ogoalAmt')?.value);
+ let ns=[...document.querySelectorAll('.obn')],as=[...document.querySelectorAll('.oba')],ds=[...document.querySelectorAll('.obd')],fs=[...document.querySelectorAll('.obf')];
+ P.bills=ns.map((x,i)=>({name:x.value||'Bill',amount:n(as[i].value),nextDue:ds[i].value,freq:fs[i].value})).filter(x=>x.amount&&x.nextDue)
+}
+let savingsBuilderUnlocked=false;
+function savingsGoalLabel(){
+  let type=document.getElementById('goalTypeValue')?.value||P.goalType||'';
+  if(type==='save')return 'Build savings';
+  if(type==='custom')return (document.getElementById('ogoalName')?.value||P.goalName||'Something important').trim();
+  return type||P.goalName||'Build savings';
+}
+function goalIconFor(type){return {'Emergency fund':'🛡','Trip / Vacation':'✈','Vehicle':'🚗','Home':'🏠','Education':'🎓','save':'◎','custom':'•••'}[type]||'◎'}
+function startSavingsPlan(){
+  savingsBuilderUnlocked=true;
+  if(P.savePace==='none'||!P.savePace)P.savePace='balanced';
+  let gate=document.getElementById('savingsGate'),builder=document.getElementById('savingsBuilder');if(gate)gate.style.display='none';if(builder)builder.classList.add('open');
+  syncSavingsStep();setTimeout(()=>document.getElementById('goalTypeSelect')?.focus(),0);
+}
+function skipSavingsOnboarding(){
+  capture();P.savePace='none';P.savePerPaycheck=0;buildAha();step=4;showStep();
+}
+function goalTypeSelectChanged(){
+  let sel=document.getElementById('goalTypeSelect'),type=sel?.value||'';
+  let hidden=document.getElementById('goalTypeValue'),customWrap=document.getElementById('customGoalWrap'),goalNameInput=document.getElementById('ogoalName');if(hidden)hidden.value=type;P.goalType=type;
+  if(customWrap)customWrap.classList.toggle('open',type==='custom');
+  let icon=document.getElementById('goalSelectIcon');if(icon)icon.textContent=goalIconFor(type);
+  if(type==='custom'){if(goalNameInput&&(!goalNameInput.value||['Emergency fund','Trip / Vacation','Vehicle','Home','Education','Build savings'].includes(goalNameInput.value)))goalNameInput.value='';setTimeout(()=>goalNameInput?.focus(),0)}
+  else if(type==='save'){if(goalNameInput)goalNameInput.value='';}
+  else if(type&&goalNameInput)goalNameInput.value=type;
+  savingsGoalChanged();
+}
+function savingsGoalChanged(){
+  let goalAmt=document.getElementById('ogoalAmt');P.goalName=savingsGoalLabel();P.goalAmount=n(goalAmt?.value);renderSavingsPlanPreview();
+  renderSelectedPace();
+}
+function savingsPaceData(){
+  let s=suggestedSavings();
+  return [
+    {key:'easy',label:'Comfortable',value:s.easy,desc:'Steady progress with more flexibility today.'},
+    {key:'balanced',label:'Balanced',value:s.balanced,desc:'Meaningful progress while keeping breathing room.',recommended:true},
+    {key:'push',label:'Faster',value:s.push,desc:'Reach your goal sooner with less Safe2Spend available.'}
+  ];
+}
+function paceExplanationHTML(o,s){
+  let remaining=Math.max(0,s.available-o.value),annual=o.value*paychecksPerYear(),goal=n(document.getElementById('ogoalAmt')?.value),saved=n(P.savings),left=Math.max(0,goal-saved),checks=o.value>0?Math.ceil(left/o.value):0;
+  let eta=goal&&o.value?`${checks} paycheck${checks===1?'':'s'} at this pace`:'No target amount required';
+  return `<strong>Why this pace?</strong><br>${o.key==='easy'?'It puts more weight on flexibility today while still creating a savings habit.':o.key==='balanced'?'It makes meaningful savings progress while preserving more room across upcoming pay cycles.':'It prioritizes reaching your goal sooner and intentionally leaves less flexible spending.'}<div class="pace-math"><span>Paycheck</span><strong>${money(P.paycheck)}</strong><span>Bills reserved</span><strong>−${money(s.funding.total)}</strong><span>Everyday spending</span><strong>−${money(lifeTotal())}</strong><span>Available after essentials</span><strong>${money(s.available)}</strong><span>${o.label} savings</span><strong>−${money(o.value)}</strong><span>Approx. Safe2Spend</span><strong>${money(remaining)}</strong><span>Approx. yearly savings</span><strong>${money(annual)}</strong><span>Goal outlook</span><strong>${eta}</strong></div>`;
+}
+function buildSaveOptions(){
+  capture();let opts=savingsPaceData(),sel=document.getElementById('savingsPaceSelect');if(!sel)return;
+  if(!P.savePace||P.savePace==='none')P.savePace='balanced';
+  if(P.savePace!=='custom'){let selected=opts.find(o=>o.key===P.savePace)||opts[1];P.savePace=selected.key;P.savePerPaycheck=selected.value;}
+  sel.innerHTML=opts.map(o=>`<option value="${o.key}">${o.label}${o.recommended?' — Recommended':''} • ${money(o.value)}/paycheck</option>`).join('')+`<option value="custom">Custom amount</option>`;
+  sel.value=P.savePace==='custom'?'custom':P.savePace;
+  let custom=document.getElementById('compactCustomEditor');if(custom)custom.classList.toggle('open',P.savePace==='custom');
+  let inp=document.getElementById('customSaveAmount');if(inp&&P.savePace==='custom'&&n(P.savePerPaycheck)>0&&!n(inp.value))inp.value=Number(P.savePerPaycheck).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  renderSelectedPace();enhanceAllInputs(document.getElementById('savingsBuilder'));renderSavingsPlanPreview();
+}
+function savingsPaceSelectChanged(){
+  let key=document.getElementById('savingsPaceSelect')?.value||'balanced',opts=savingsPaceData();
+  P.savePace=key;
+  let custom=document.getElementById('compactCustomEditor');
+  if(key==='custom'){
+    custom?.classList.add('open');
+    let inp=document.getElementById('customSaveAmount');if(inp&&!n(inp.value)&&n(P.savePerPaycheck))inp.value=Number(P.savePerPaycheck).toFixed(2);
+    customSavingsChanged();setTimeout(()=>inp?.focus(),0);
+  }else{
+    custom?.classList.remove('open');let o=opts.find(x=>x.key===key)||opts[1];P.savePerPaycheck=o.value;renderSelectedPace();renderSavingsPlanPreview();
+  }
+}
+function renderSelectedPace(){
+  let card=document.getElementById('selectedPaceCard');if(!card)return;
+  let s=suggestedSavings(),opts=savingsPaceData(),key=P.savePace||'balanced';
+  if(key==='custom'){
+    let amt=n(P.savePerPaycheck),remaining=Math.max(0,s.available-amt);
+    card.innerHTML=`<div class="selected-pace-head"><div><strong>Custom amount</strong><div class="selected-pace-amount">${money(amt)} per paycheck</div><p class="selected-pace-desc">You choose the amount. This leaves about ${money(remaining)} Safe2Spend after bills and everyday spending.</p></div></div>`;return;
+  }
+  let o=opts.find(x=>x.key===key)||opts[1];
+  card.innerHTML=`<div class="selected-pace-head"><div><strong>${o.label}${o.recommended?'<span class="recommended-tag">Recommended</span>':''}</strong><div class="selected-pace-amount">${money(o.value)} per paycheck</div><p class="selected-pace-desc">${o.desc}</p></div><button type="button" class="why-pace" onclick="toggleDisclosure('selectedPaceWhy')">ⓘ Why?</button></div><div id="selectedPaceWhy" class="pace-explain">${paceExplanationHTML(o,s)}</div>`;
+}
+function customSavingsChanged(){
+  let inp=document.getElementById('customSaveAmount'),s=suggestedSavings(),value=n(inp?.value),max=s.available;
+  P.savePace='custom';P.savePerPaycheck=Math.min(value,max);
+  let warn=document.getElementById('customSaveWarning');if(warn)warn.textContent=value>max?`That’s more than the ${money(max)} currently available after bills and everyday spending. We’ll cap this plan at ${money(max)}.`:value>max*.8&&max>0?`This leaves about ${money(Math.max(0,max-value))} Safe2Spend per paycheck.`:'';
+  renderSelectedPace();renderSavingsPlanPreview();
+}
+function paychecksPerYear(){return P.payFreq==='weekly'?52:P.payFreq==='biweekly'?26:P.payFreq==='semimonthly'?24:12}
+function renderSavingsPlanPreview(){
+  let box=document.getElementById('savingsPlanPreview');if(!box)return;
+  let s=suggestedSavings(),save=n(P.savePerPaycheck),safe=Math.max(0,s.available-save),annual=save*paychecksPerYear(),goal=n(document.getElementById('ogoalAmt')?.value),label=savingsGoalLabel();
+  P.goalName=label;P.goalAmount=goal;
+  let left=Math.max(0,goal-n(P.savings)),checks=save>0?Math.ceil(left/save):0,eta='';
+  if(goal&&save>0){let dates=nextPayDates(Math.max(1,checks));let d=dates[Math.max(0,checks-1)];eta=d?`On pace for ${d.toLocaleDateString(undefined,{month:'short',year:'numeric'})}`:`About ${checks} paychecks`}
+  else if(save>0)eta=`About ${money(annual)} over 1 year`;else eta='No savings contribution selected';
+  let total=Math.max(1,n(P.paycheck)),b=Math.min(total,s.funding.total),life=Math.min(total-b,lifeTotal()),sv=Math.min(total-b-life,save),sf=Math.max(0,total-b-life-sv);
+  box.innerHTML=`<div class="preview-title"><div><small class="muted">YOUR PLAN</small><strong>${esc(label)}</strong></div>${goal?`<strong>${money(goal)} goal</strong>`:''}</div><div class="preview-grid"><div><small>Savings</small><strong>${money(save)}/paycheck</strong></div><div><small>Safe2Spend</small><strong>${money(safe)}/paycheck</strong></div><div><small>Outlook</small><strong>${eta}</strong></div></div><div class="paycheck-split"><span style="width:${pct(b,total)}%"></span><span style="width:${pct(life,total)}%"></span><span style="width:${pct(sv,total)}%"></span><span style="width:${pct(sf,total)}%"></span></div><p class="preview-note">Bills and everyday spending are accounted for before savings. ${save?`At this pace, you’d set aside about ${money(annual)} over a year.`:'You can add savings whenever the plan has room.'}</p>`;
+}
+function syncSavingsStep(){
+  let gate=document.getElementById('savingsGate'),builder=document.getElementById('savingsBuilder');
+  if((P.goalType||n(P.savePerPaycheck)>0)&&P.savePace!=='none')savingsBuilderUnlocked=true;
+  if(gate)gate.style.display=savingsBuilderUnlocked?'none':'';if(builder)builder.classList.toggle('open',savingsBuilderUnlocked);
+  if(!savingsBuilderUnlocked)return;
+  let type=P.goalType||'',hidden=document.getElementById('goalTypeValue');if(hidden)hidden.value=type;
+  let sel=document.getElementById('goalTypeSelect');if(sel)sel.value=type;
+  let icon=document.getElementById('goalSelectIcon');if(icon)icon.textContent=goalIconFor(type);
+  let customWrap=document.getElementById('customGoalWrap'),goalNameInput=document.getElementById('ogoalName'),goalAmt=document.getElementById('ogoalAmt');if(customWrap)customWrap.classList.toggle('open',type==='custom');
+  if(P.goalName&&type!=='save'&&goalNameInput)goalNameInput.value=P.goalName;
+  if(P.goalAmount&&goalAmt)goalAmt.value=Number(P.goalAmount).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  buildSaveOptions();
+}
+function toggleAhaMath(){
+  let box=document.getElementById('ahaMath');if(box)box.classList.toggle('open');
+}
+function ahaGoalLabel(){
+  if(P.goalName)return P.goalName;
+  let labels={emergency:'Emergency fund',trip:'Trip / Vacation',vehicle:'Vehicle',home:'Home',education:'Education',save:'Savings'};
+  return labels[P.goalType]||'Savings';
+}
+function buildAha(){
+  capture();
+  let payDate=P.nextPayday?parseDate(P.nextPayday):addDays(today(),7);
+  let plan=paycheckPlan(payDate,P.checking+P.cash);
+  let income=Math.max(0,n(plan.income)),bills=Math.max(0,n(plan.funding.total)),life=Math.max(0,n(plan.life)),save=Math.max(0,n(plan.save)),safe=Math.max(0,n(plan.safeAdd));
+  let total=Math.max(1,income);
+  let pct=x=>Math.max(0,(x/total)*100);
+  let paychecksYear=P.payFreq==='weekly'?52:P.payFreq==='biweekly'?26:P.payFreq==='semimonthly'?24:12;
+  let annual=save*paychecksYear;
+  let months3=annual/4,months6=annual/2;
+  let remaining=Math.max(0,n(P.goalAmount)-n(P.savings));
+  let checksToGoal=save>0&&remaining>0?Math.ceil(remaining/save):0;
+  let monthsToGoal=checksToGoal?Math.ceil(checksToGoal/(paychecksYear/12)):0;
+  let goalLabel=ahaGoalLabel();
+
+  ahaSafe.textContent=money(safe);
+  ahaWhyLabel.textContent=`Why ${money(safe)}?`;
+  ahaHeroSub.textContent=safe>0?'After bills, everyday spending, and your savings plan are accounted for.':'Everything available from this paycheck already has a job.';
+  ahaPills.innerHTML=`<span class="aha-pill">✓ Bills prepared</span><span class="aha-pill">✓ Everyday protected</span><span class="aha-pill">${save>0?'✓ Savings planned':'Savings optional'}</span>`;
+  ahaPaycheckTitle.textContent=`Your ${money(income)} paycheck`;
+
+  ahaBar.innerHTML=`<span class="bills" style="width:${pct(bills)}%" title="Bills ${money(bills)}"></span><span class="everyday" style="width:${pct(life)}%" title="Everyday ${money(life)}"></span><span class="savings" style="width:${pct(save)}%" title="Savings ${money(save)}"></span><span class="safe" style="width:${pct(safe)}%" title="Safe2Spend ${money(safe)}"></span>`;
+  ahaFour.innerHTML=`
+    <div><strong>${money(bills)}</strong><small>Bills · ${Math.round(pct(bills))}%</small></div>
+    <div><strong>${money(life)}</strong><small>Everyday · ${Math.round(pct(life))}%</small></div>
+    <div><strong>${money(save)}</strong><small>Savings · ${Math.round(pct(save))}%</small></div>
+    <div><strong>${money(safe)}</strong><small>Safe2Spend · ${Math.round(pct(safe))}%</small></div>`;
+
+  let savingsAccomplish=save>0
+    ?`<strong>You’re making progress${P.goalAmount?' toward your goal':''}.</strong><p>${money(save)} is going ${P.goalAmount?`toward your ${money(P.goalAmount)} ${esc(goalLabel)} goal`:'into savings'} from this paycheck.</p>`
+    :`<strong>Savings isn’t part of this plan yet.</strong><p>That’s okay. You can add a savings amount whenever you’re ready.</p>`;
+  ahaAccomplish.innerHTML=`
+    <div class="aha-accomplish-row"><span class="aha-check">✓</span><div><strong>Your upcoming bills are accounted for.</strong><p>${money(bills)} is being prepared from this paycheck.</p></div></div>
+    <div class="aha-accomplish-row"><span class="aha-check">✓</span><div><strong>Everyday spending has room.</strong><p>${money(life)} stays available for regular day-to-day expenses until your next payday.</p></div></div>
+    <div class="aha-accomplish-row"><span class="aha-check">${save>0?'✓':'○'}</span><div>${savingsAccomplish}</div></div>`;
+
+  let outlook=document.getElementById('ahaOutlook'),outlookCard=document.getElementById('ahaOutlookCard');
+  if(save>0){
+    outlookCard.style.display='';
+    outlook.innerHTML=`<div><small>3 months</small><strong>≈ ${money(months3)}</strong><small>saved</small></div><div><small>6 months</small><strong>≈ ${money(months6)}</strong><small>saved</small></div><div><small>1 year</small><strong>≈ ${money(annual)}</strong><small>saved</small></div><div><small>${P.goalAmount?'Goal estimate':'Current pace'}</small><strong>${P.goalAmount&&monthsToGoal?`≈ ${monthsToGoal} mo`:'Keep building'}</strong><small>${P.goalAmount?`to ${money(P.goalAmount)}`:'at this pace'}</small></div>`;
+  }else{
+    outlookCard.style.display='none';
+    outlook.innerHTML='';
+  }
+
+  let state=document.getElementById('ahaState');
+  if(safe<=0){
+    state.className='aha-state zero';
+    state.innerHTML=`<strong>This paycheck is fully spoken for.</strong><p>Your bills and everyday needs are using what’s available right now. Safe2Spend isn’t finding extra flexible spending from this paycheck — and that’s useful to know before you spend it.</p>`;
+  }else if(income&&safe/income<.08){
+    state.className='aha-state tight';
+    state.innerHTML=`<strong>This paycheck has less flexibility.</strong><p>Most of it already has a job, so keeping the remaining ${money(safe)} available gives your plan more breathing room.</p>`;
+  }else{
+    state.className='aha-state good';
+    state.innerHTML=`<strong>You have room to work with.</strong><p>Your priorities are accounted for, leaving about ${money(safe)} flexible from this paycheck.</p>`;
+  }
+
+  ahaMath.innerHTML=`<strong>Why ${money(safe)}?</strong><p class="muted" style="margin:4px 0 8px">Here’s how this paycheck is organized.</p>
+    <div class="aha-math-row"><span>Paycheck amount</span><strong>${money(income)}</strong></div>
+    <div class="aha-math-row"><span>Bills prepared</span><strong>− ${money(bills)}</strong></div>
+    <div class="aha-math-row"><span>Everyday spending</span><strong>− ${money(life)}</strong></div>
+    <div class="aha-math-row"><span>Savings</span><strong>− ${money(save)}</strong></div>
+    <div class="aha-math-row"><span>Safe2Spend</span><strong>${money(safe)}</strong></div>`;
+  ahaMath.classList.remove('open');
+}
+function nextStep(){
+ if(step===1){
+   if(P.payFreq==='semimonthly'){syncSemiPaydays();if(payDaySpecsCanCollide(semiDay1.value,semiDay2.value)){semiDay2.focus();return}}
+   else if(!onextpay.value){openCalendar(onextpay);return}
+   if(!n(opayamt.value)){opayamt.focus();return}
+ }
+ if(step===2&&!n(oeverydayAmount.value)&&!allowZeroEverydayOnce){everydayZeroM.classList.add('open');return}
+ if(step===2)allowZeroEverydayOnce=false;
+ if(step===3){capture();if(P.savePace==='custom'){let raw=n(document.getElementById('customSaveAmount')?.value);P.savePerPaycheck=Math.min(raw,suggestedSavings().available)}buildAha()}
+ step=Math.min(4,step+1);showStep()
+}
+function backStep(){step=Math.max(0,step-1);showStep()}
+function showStep(){document.querySelectorAll('.onstep').forEach((x,i)=>x.classList.toggle('active',i===step));onbar.style.width=((step+1)/5*100)+'%';if(step===0)syncOpeningStep();if(step===1){populatePayDaySelectors();syncPayScheduleUI()}if(step===2){updateOBillCount();syncEverydaySummary()}if(step===3)syncSavingsStep()}
+function finish(){capture();P.s2sAnchor=suggestedCurrentS2S();P.s2sBalance=P.s2sAnchor;P.s2sActivity=[];localStorage.setItem(KEY,JSON.stringify(P));onboard.classList.add('hide');render()}
+function buyOpen(){buyName.value='';buyAmt.value='';buyResult.innerHTML='';buyM.classList.add('open')}
+function closeM(id){document.getElementById(id).classList.remove('open')}
+function analyzeBuy(){
+  ensureS2S();
+  let price=n(buyAmt.value),name=buyName.value||'This purchase',available=n(P.s2sBalance),after=available-price,cl,title,text;
+  if(price>available){
+    cl='no';title='BETTER AFTER PAYDAY';
+    text=`${esc(name)} is more than your current ${money(available)} Safe2Spend. Your bills and everyday money stay protected if you wait or free up more S2S first.`;
+  }else if(after<available*.25){
+    cl='mid';title='YOU CAN MAKE IT WORK';
+    text=`Your priorities stay protected, but ${esc(name)} would use most of your current Safe2Spend and leave about ${money(after)} until payday.`;
+  }else{
+    cl='safe';title="YOU'RE GOOD";
+    text=`${esc(name)} fits inside your current Safe2Spend. You’d still have about ${money(after)} flexible afterward.`;
+  }
+  buyResult.innerHTML=`<div class="verdict ${cl}"><div class="kicker">Safe2Spend take</div><h3>${title}</h3><p>${text}</p></div>`;
+}
+function editOpen(){
+  echeck.value=P.checking;esavings.value=P.savings;efreq.value=P.payFreq;enext.value=P.nextPayday;epay.value=P.paycheck;populatePayDaySelectors();syncEditPaySchedule();formatAllMoneyInputs();
+  efood.value=P.life.food;egas.value=P.life.gas;eother.value=P.life.other;esave.value=P.savePerPaycheck;
+  egoal.value=P.goalName||'';egoalamt.value=P.goalAmount||'';
+  ebills.innerHTML='';P.bills.forEach(b=>addEBill(b.name,b.amount,b.nextDue,b.freq));editM.classList.add('open');
+}
+function addEBill(name='',amount='',nextDue='',freq='monthly'){let d=document.createElement('div');d.className='billcard';d.innerHTML=`<div class="grid"><div class="field"><label>Bill</label><div class="input"><input class="ebn" list="billSuggestions" value="${esc(name)}"></div></div><div class="field"><label>Amount</label><div class="input"><span>$</span><input class="eba" inputmode="decimal" value="${amount}"></div></div></div><div class="grid2"><div class="field"><label>Next due</label><div class="input"><input class="ebd" type="date" value="${nextDue}"></div></div><div class="field"><label>Repeats</label><div class="input"><select class="ebf"><option value="weekly" ${freq==='weekly'?'selected':''}>Weekly</option><option value="biweekly" ${freq==='biweekly'?'selected':''}>Every 2 weeks</option><option value="monthly" ${freq==='monthly'?'selected':''}>Monthly</option><option value="quarterly" ${freq==='quarterly'?'selected':''}>Every 3 months</option><option value="yearly" ${freq==='yearly'?'selected':''}>Yearly</option></select></div></div></div><button class="danger full" onclick="this.parentElement.remove()">Remove</button>`;ebills.appendChild(d)}
+function saveEdit(){
+  let oldS2S=n(P.s2sBalance),oldPay=n(P.paycheck),oldSave=n(P.savePerPaycheck);
+  P.checking=n(echeck.value);P.savings=n(esavings.value);P.payFreq=efreq.value;if(P.payFreq==='semimonthly'){P.payDays=[esemiDay1.value,esemiDay2.value];let np=nextPayDates(1)[0];P.nextPayday=np?iso(np):''}else P.nextPayday=enext.value;P.paycheck=n(epay.value);
+  P.life={food:n(efood.value),gas:n(egas.value),other:n(eother.value)};P.everydayInput={amount:lifeTotal(),basis:'paycheck'};
+  P.goalName=egoal.value.trim();P.goalAmount=n(egoalamt.value);P.savePerPaycheck=n(esave.value);
+  let ns=[...document.querySelectorAll('.ebn')],as=[...document.querySelectorAll('.eba')],ds=[...document.querySelectorAll('.ebd')],fs=[...document.querySelectorAll('.ebf')];
+  P.bills=ns.map((x,i)=>({name:x.value||'Bill',amount:n(as[i].value),nextDue:ds[i].value,freq:fs[i].value})).filter(x=>x.amount&&x.nextDue);
+  P.s2sAnchor=null;ensureS2S();
+  let parts=[];
+  if(oldPay!==n(P.paycheck))parts.push(`paycheck is now ${money(P.paycheck)}`);
+  if(oldSave!==n(P.savePerPaycheck))parts.push(`savings pace is now ${money(P.savePerPaycheck)}/paycheck`);
+  parts.push(`Safe2Spend recalculated to ${money(P.s2sBalance)}`);
+  setLastChange('Your plan was updated',parts.join(', ')+'.');
+  localStorage.setItem(KEY,JSON.stringify(P));closeM('editM');render();
+}
+
+function formatMoneyTypingValue(raw){
+  raw=String(raw||'').replace(/[^0-9.]/g,'');
+  let parts=raw.split('.');let whole=(parts.shift()||'').replace(/^0+(?=\d)/,'');let dec=parts.join('').slice(0,2);
+  if(!whole&&raw.startsWith('.'))whole='0';
+  whole=whole?Number(whole).toLocaleString('en-US'):'';
+  return whole+(raw.includes('.')?'.'+dec:'');
+}
+function formatMoneyElement(el,finish=false){
+  if(!el)return;let raw=String(el.value||'').replace(/[$,\s]/g,'');
+  if(!raw){el.value='';el.placeholder='0.00';return}
+  let num=Number(raw);if(!Number.isFinite(num)){el.value='';return}
+  el.value=finish?num.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):formatMoneyTypingValue(raw);
+}
+function enhanceMoneyInput(el){
+  if(!el||el.dataset.moneyEnhanced)return;el.dataset.moneyEnhanced='1';el.placeholder='0.00';
+  el.addEventListener('input',()=>{let p=el.selectionStart??el.value.length;let before=el.value.length;el.value=formatMoneyTypingValue(el.value);let diff=el.value.length-before;try{el.setSelectionRange(Math.max(0,p+diff),Math.max(0,p+diff))}catch(e){}});
+  el.addEventListener('blur',()=>formatMoneyElement(el,true));if(el.value)formatMoneyElement(el,true);
+}
+function formatAllMoneyInputs(){document.querySelectorAll('input[inputmode="decimal"]').forEach(el=>formatMoneyElement(el,true))}
+let activeDateInput=null,calView=new Date();
+function humanDate(isoStr){if(!isoStr)return 'Select date';let d=parseDate(isoStr);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}
+function enhanceDateInput(input){
+  if(!input||input.dataset.dateEnhanced)return;input.dataset.dateEnhanced='1';let initial=input.value;
+  input.type='hidden';
+  let btn=document.createElement('button');btn.type='button';btn.className='date-display'+(initial?'':' placeholder');btn.textContent=humanDate(initial);btn.setAttribute('aria-label',input.getAttribute('aria-label')||'Choose date');
+  input.parentNode.insertBefore(btn,input);input._dateButton=btn;btn.onclick=()=>openCalendar(input);
+}
+function refreshDateButton(input){if(input?._dateButton){input._dateButton.textContent=humanDate(input.value);input._dateButton.classList.toggle('placeholder',!input.value)}}
+function openCalendar(input){activeDateInput=input;let base=input.value?parseDate(input.value):today();calView=new Date(base.getFullYear(),base.getMonth(),1);renderCalendar();calendarOverlay.classList.add('open')}
+function shiftCalendar(delta){calView=new Date(calView.getFullYear(),calView.getMonth()+delta,1);renderCalendar()}
+function renderCalendar(){
+ if(!window.calendarGrid)return;calTitle.textContent=calView.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+ let y=calView.getFullYear(),m=calView.getMonth(),first=new Date(y,m,1),start=addDays(first,-first.getDay()),sel=activeDateInput?.value||'';
+ calendarGrid.innerHTML='';
+ for(let i=0;i<42;i++){let d=addDays(start,i),b=document.createElement('button');b.type='button';b.className='cal-day'+(d.getMonth()!==m?' other':'')+(iso(d)===iso(today())?' today':'')+(iso(d)===sel?' selected':'');b.textContent=d.getDate();b.onclick=()=>chooseCalendarDate(d);calendarGrid.appendChild(b)}
+}
+function chooseCalendarDate(d){if(!activeDateInput)return;activeDateInput.value=iso(d);refreshDateButton(activeDateInput);activeDateInput.dispatchEvent(new Event('input',{bubbles:true}));activeDateInput.dispatchEvent(new Event('change',{bubbles:true}));renderCalendar()}
+function calendarToday(){calView=new Date(today().getFullYear(),today().getMonth(),1);chooseCalendarDate(today())}
+function closeCalendar(){calendarOverlay.classList.remove('open');activeDateInput=null}
+function enhanceAllInputs(root=document){
+ root.querySelectorAll?.('input[inputmode="decimal"]').forEach(enhanceMoneyInput);
+ root.querySelectorAll?.('input[type="date"]').forEach(enhanceDateInput);
+}
+const inputObserver=new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1)enhanceAllInputs(n)})));inputObserver.observe(document.documentElement,{childList:true,subtree:true});
+
+function resetAll(){if(confirm('Reset Safe2Spend and delete this browser profile?')){localStorage.removeItem(KEY);location.reload()}}
+document.querySelectorAll('.modal').forEach(m=>m.onclick=e=>{if(e.target===m)m.classList.remove('open')});
+
+(function bindEverydayEstimator(){
+  const btn=document.getElementById('everydayEstimateBtn');
+  if(!btn)return;
+  // Inline onclick remains as a no-JS-bundler fallback. This listener is a resilient secondary path.
+  btn.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&!e.defaultPrevented){e.preventDefault();openEverydayEstimator();}});
+})();
+(function(){let d=addDays(today(),7);onextpay.value=iso(d);let old=localStorage.getItem(KEY);if(old){try{P=Object.assign(P,JSON.parse(old));P.life=P.life||{food:0,gas:0,other:0};P.everydayInput=P.everydayInput||{amount:lifeTotal(),basis:'paycheck'};P.payDays=Array.isArray(P.payDays)&&P.payDays.length===2?P.payDays:['15','last'];P.s2sActivity=P.s2sActivity||[];if(P.s2sBalance===undefined)P.s2sBalance=null;if(P.lastChange===undefined)P.lastChange=null;if(P.goalType===undefined){let known=['Emergency fund','Trip / Vacation','Vehicle','Home','Education'];P.goalType=!P.goalName?'':known.includes(P.goalName)?P.goalName:'custom';}if(P.savePace===undefined)P.savePace='balanced';P.s2sAnchor=null;onboard.classList.add('hide')}catch(e){}}if(window.oeverydayAmount&&lifeTotal()>0)oeverydayAmount.value=Number(lifeTotal()).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});populatePayDaySelectors();syncPayScheduleUI();syncOpeningStep();enhanceAllInputs();syncEverydaySummary();render()})();
+</script>
+<div id="calendarOverlay" class="calendar-overlay" onclick="if(event.target===this)closeCalendar()"><div class="s2s-calendar" role="dialog" aria-modal="true" aria-label="Choose a date"><div class="cal-head"><button class="cal-nav" type="button" onclick="shiftCalendar(-1)" aria-label="Previous month">‹</button><div id="calTitle" class="cal-title" aria-live="polite"></div><button class="cal-nav" type="button" onclick="shiftCalendar(1)" aria-label="Next month">›</button></div><div class="cal-week"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div><div id="calendarGrid" class="cal-grid"></div><div class="cal-foot"><button type="button" onclick="calendarToday()">Today</button><button class="cal-done" type="button" onclick="closeCalendar()">Done</button></div></div></div>
+</body>
+</html>
