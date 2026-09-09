@@ -1,0 +1,5 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#173C35"><title>Safe2Spend</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f4f7f5}iframe{border:0;width:100%;height:100%;display:block}</style></head><body><iframe id="stage" src="mvp16.html" title="Safe2Spend"></iframe><script src="mvp16-zero-state.js"></script><script>
+const stage=document.getElementById('stage');
+function tryInstall(){const outer=stage.contentDocument;if(!outer)return;const app=outer.getElementById('app');if(!app)return;const install=()=>{const d=app.contentDocument,w=app.contentWindow;if(d&&w&&d.getElementById('mvp16HomeStyle'))installZeroState(w,d)};app.addEventListener('load',()=>setTimeout(install,0),{once:false});setTimeout(install,0)}
+stage.addEventListener('load',tryInstall);setTimeout(tryInstall,250);
+</script></body></html>
