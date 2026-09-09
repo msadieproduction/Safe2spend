@@ -27,7 +27,7 @@ function installStateIntegrity(w,d){
  function saveState(reason){
    P=normalized(P);
    if(configured(P)){
-     P.onboardingComplete=!!P.onboardingComplete||d.getElementById('onboard')?.classList.contains('hide');
+     P.onboardingComplete=!!P.onboardingComplete||document.getElementById('onboard')?.classList.contains('hide');
      localStorage.setItem(KEY,JSON.stringify(P));
    }
    validateState(reason||'save');
@@ -39,7 +39,7 @@ function installStateIntegrity(w,d){
    if(!configured(stored)){
      console.warn('[S2S QA][EMPTY_STATE_RECOVERED] Removed an invalid empty persisted state.');
      localStorage.removeItem(KEY);
-     const ob=d.getElementById('onboard');if(ob)ob.classList.remove('hide');
+     const ob=document.getElementById('onboard');if(ob)ob.classList.remove('hide');
      return false;
    }
    P=Object.assign(P,stored);
@@ -64,19 +64,22 @@ function installStateIntegrity(w,d){
    }catch(e){console.error('[S2S QA][VALIDATOR]',e);return ['validator failure']}
  }
  function patchAhaCopy(){
-   const hero=d.querySelector('.aha-hero');
+   const hero=document.querySelector('.aha-hero');
    if(!hero)return;
+   const safeEl=document.getElementById('ahaSafe');
+   const heroSub=document.getElementById('ahaHeroSub');
+   const pills=document.getElementById('ahaPills');
    const kicker=hero.querySelector('.kicker');if(kicker)kicker.textContent='PROJECTED FROM YOUR NEXT PAYCHECK';
    const name=hero.querySelector('.aha-hero-name');if(name)name.textContent='Projected Safe2Spend';
-   if(window.ahaHeroSub)ahaHeroSub.textContent='What your next paycheck is projected to leave after bills, everyday spending, and your savings plan are accounted for.';
-   if(window.ahaPills)ahaPills.innerHTML='<span class="aha-pill">✓ Bills being prepared</span><span class="aha-pill">✓ Everyday protected</span><span class="aha-pill">'+(num(P.savePerPaycheck)>0?'✓ Savings planned':'Savings optional')+'</span>';
-   const state=d.getElementById('ahaState');
-   if(state&&num(ahaSafe?.textContent)>0){
-     const projected=ahaSafe.textContent;
+   if(heroSub)heroSub.textContent='What your next paycheck is projected to leave after bills, everyday spending, and your savings plan are accounted for.';
+   if(pills)pills.innerHTML='<span class="aha-pill">✓ Bills being prepared</span><span class="aha-pill">✓ Everyday protected</span><span class="aha-pill">'+(num(P.savePerPaycheck)>0?'✓ Savings planned':'Savings optional')+'</span>';
+   const state=document.getElementById('ahaState');
+   if(state&&safeEl&&num(safeEl.textContent)>0){
+     const projected=safeEl.textContent;
      state.className='aha-state good';
      state.innerHTML='<strong>Your next paycheck gives you room to work with.</strong><p>After its planned jobs are covered, about '+projected+' is projected to become Safe2Spend.</p>';
    }
-   const rows=d.querySelectorAll('#ahaAccomplish .aha-accomplish-row');
+   const rows=document.querySelectorAll('#ahaAccomplish .aha-accomplish-row');
    if(rows[0]){
      const strong=rows[0].querySelector('strong');if(strong)strong.textContent='Your upcoming bills are being prepared for.';
      const p=rows[0].querySelector('p');if(p&&!p.textContent.includes('from this paycheck'))p.textContent=p.textContent+' from this paycheck.';
@@ -84,7 +87,7 @@ function installStateIntegrity(w,d){
  }
  const hadCanonical=hydrateCanonical();
  if(hadCanonical){
-   const ob=d.getElementById('onboard');if(ob&&P.onboardingComplete)ob.classList.add('hide');
+   const ob=document.getElementById('onboard');if(ob&&P.onboardingComplete)ob.classList.add('hide');
  }
  if(typeof buildAha==='function'&&!buildAha.__s2sIntegrity){
    const baseBuildAha=buildAha;
@@ -99,16 +102,17 @@ function installStateIntegrity(w,d){
  if(typeof render==='function'&&!render.__s2sIntegrity){
    const baseRender=render;
    render=function(){baseRender();
-     const small=d.querySelector('.brand small');if(small)small.textContent='MVP 1.6 · Dev';
-     const title=d.querySelector('title');if(title)title.textContent='Safe2Spend MVP 1.6 Dev';
+     const small=document.querySelector('.brand small');if(small)small.textContent='MVP 1.6 · Dev';
+     document.title='Safe2Spend MVP 1.6 Dev';
      validateState('render');
    };
    render.__s2sIntegrity=true;
  }
- d.addEventListener('visibilitychange',()=>{if(d.visibilityState==='hidden')saveState('visibilitychange')});
- w.addEventListener('pagehide',()=>saveState('pagehide'));
- const small=d.querySelector('.brand small');if(small)small.textContent='MVP 1.6 · Dev';
- const title=d.querySelector('title');if(title)title.textContent='Safe2Spend MVP 1.6 Dev';
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveState('visibilitychange')});
+ window.addEventListener('pagehide',()=>saveState('pagehide'));
+ const small=document.querySelector('.brand small');if(small)small.textContent='MVP 1.6 · Dev';
+ document.title='Safe2Spend MVP 1.6 Dev';
+ patchAhaCopy();
  if(typeof render==='function')render();
  validateState('install');
 })();
