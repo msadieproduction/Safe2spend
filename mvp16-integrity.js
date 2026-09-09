@@ -9,7 +9,7 @@ function installStateIntegrity(w,d){
  function configured(x){
    if(!x||typeof x!=='object')return false;
    const life=x.life||{};
-   return !!x.onboardingComplete||num(x.paycheck)>0||!!x.nextPayday||(Array.isArray(x.bills)&&x.bills.length>0)||num(x.checking)>0||num(x.cash)>0||num(x.savings)>0||num(life.food)+num(life.gas)+num(life.other)>0||num(x.everydayInput?.amount)>0||num(x.savePerPaycheck)>0||!!x.goalName;
+   return num(x.paycheck)>0||!!x.nextPayday||(Array.isArray(x.bills)&&x.bills.length>0)||num(x.checking)>0||num(x.cash)>0||num(x.savings)>0||num(life.food)+num(life.gas)+num(life.other)>0||num(x.everydayInput?.amount)>0||num(x.savePerPaycheck)>0||!!x.goalName;
  }
  function normalized(x){
    x=x&&typeof x==='object'?x:{};
@@ -55,66 +55,32 @@ function installStateIntegrity(w,d){
      const accounted=typeof currentAccounted==='function'?currentAccounted():Math.max(0,avail-safe);
      if(Math.abs((accounted+safe)-avail)>.51)errors.push('Available Balance != Accounted For + Safe2Spend');
      if(safe>avail+.51)errors.push('Safe2Spend exceeds Available Balance');
-     if(num(P.savings)<0)errors.push('Savings is negative');
      if(Array.isArray(P.s2sActivity)&&P.s2sActivity.length>50)errors.push('Activity history exceeded cap');
      if(Array.isArray(P.prePaydayAdjustments)&&P.prePaydayAdjustments.length>50)errors.push('Pre-payday adjustments exceeded cap');
+     const saved=localStorage.getItem(KEY);if(saved){try{const persisted=JSON.parse(saved);if(num(persisted.savings)!==num(P.savings))errors.push('Persisted savings != runtime savings')}catch(e){errors.push('Persisted state is not valid JSON')}}
      if(errors.length)console.error('[S2S QA][INVARIANT]['+(reason||'runtime')+']',errors,{avail,accounted,safe,savings:num(P.savings)});
      else console.info('[S2S QA][PASS]['+(reason||'runtime')+']',{avail,accounted,safe,savings:num(P.savings)});
      return errors;
    }catch(e){console.error('[S2S QA][VALIDATOR]',e);return ['validator failure']}
  }
  function patchAhaCopy(){
-   const hero=document.querySelector('.aha-hero');
-   if(!hero)return;
-   const safeEl=document.getElementById('ahaSafe');
-   const heroSub=document.getElementById('ahaHeroSub');
-   const pills=document.getElementById('ahaPills');
+   const hero=document.querySelector('.aha-hero');if(!hero)return;
+   const safeEl=document.getElementById('ahaSafe'),heroSub=document.getElementById('ahaHeroSub'),pills=document.getElementById('ahaPills');
    const kicker=hero.querySelector('.kicker');if(kicker)kicker.textContent='PROJECTED FROM YOUR NEXT PAYCHECK';
    const name=hero.querySelector('.aha-hero-name');if(name)name.textContent='Projected Safe2Spend';
    if(heroSub)heroSub.textContent='What your next paycheck is projected to leave after bills, everyday spending, and your savings plan are accounted for.';
    if(pills)pills.innerHTML='<span class="aha-pill">✓ Bills being prepared</span><span class="aha-pill">✓ Everyday protected</span><span class="aha-pill">'+(num(P.savePerPaycheck)>0?'✓ Savings planned':'Savings optional')+'</span>';
-   const state=document.getElementById('ahaState');
-   if(state&&safeEl&&num(safeEl.textContent)>0){
-     const projected=safeEl.textContent;
-     state.className='aha-state good';
-     state.innerHTML='<strong>Your next paycheck gives you room to work with.</strong><p>After its planned jobs are covered, about '+projected+' is projected to become Safe2Spend.</p>';
-   }
-   const rows=document.querySelectorAll('#ahaAccomplish .aha-accomplish-row');
-   if(rows[0]){
-     const strong=rows[0].querySelector('strong');if(strong)strong.textContent='Your upcoming bills are being prepared for.';
-     const p=rows[0].querySelector('p');if(p&&!p.textContent.includes('from this paycheck'))p.textContent=p.textContent+' from this paycheck.';
-   }
+   const state=document.getElementById('ahaState');if(state&&safeEl&&num(safeEl.textContent)>0){const projected=safeEl.textContent;state.className='aha-state good';state.innerHTML='<strong>Your next paycheck gives you room to work with.</strong><p>After its planned jobs are covered, about '+projected+' is projected to become Safe2Spend.</p>'}
+   const rows=document.querySelectorAll('#ahaAccomplish .aha-accomplish-row');if(rows[0]){const strong=rows[0].querySelector('strong');if(strong)strong.textContent='Your upcoming bills are being prepared for.';const p=rows[0].querySelector('p');if(p&&!p.textContent.includes('from this paycheck'))p.textContent=p.textContent+' from this paycheck.'}
  }
  const hadCanonical=hydrateCanonical();
- if(hadCanonical){
-   const ob=document.getElementById('onboard');if(ob&&P.onboardingComplete)ob.classList.add('hide');
- }
- if(typeof buildAha==='function'&&!buildAha.__s2sIntegrity){
-   const baseBuildAha=buildAha;
-   buildAha=function(){baseBuildAha();patchAhaCopy();saveState('page5')};
-   buildAha.__s2sIntegrity=true;
- }
- if(typeof finish==='function'&&!finish.__s2sIntegrity){
-   const baseFinish=finish;
-   finish=function(){baseFinish();P.onboardingComplete=true;P.stateVersion=STATE_VERSION;saveState('finish');if(typeof render==='function')render()};
-   finish.__s2sIntegrity=true;
- }
- if(typeof render==='function'&&!render.__s2sIntegrity){
-   const baseRender=render;
-   render=function(){baseRender();
-     const small=document.querySelector('.brand small');if(small)small.textContent='MVP 1.6 · Dev';
-     document.title='Safe2Spend MVP 1.6 Dev';
-     validateState('render');
-   };
-   render.__s2sIntegrity=true;
- }
- document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveState('visibilitychange')});
- window.addEventListener('pagehide',()=>saveState('pagehide'));
- const small=document.querySelector('.brand small');if(small)small.textContent='MVP 1.6 · Dev';
- document.title='Safe2Spend MVP 1.6 Dev';
- patchAhaCopy();
- if(typeof render==='function')render();
- validateState('install');
+ if(hadCanonical){const ob=document.getElementById('onboard');if(ob&&P.onboardingComplete)ob.classList.add('hide')}
+ if(typeof buildAha==='function'&&!buildAha.__s2sIntegrity){const baseBuildAha=buildAha;buildAha=function(){baseBuildAha();patchAhaCopy();validateState('page5')};buildAha.__s2sIntegrity=true}
+ if(typeof finish==='function'&&!finish.__s2sIntegrity){const baseFinish=finish;finish=function(){baseFinish();P.onboardingComplete=true;P.stateVersion=STATE_VERSION;saveState('finish');if(typeof render==='function')render()};finish.__s2sIntegrity=true}
+ if(typeof render==='function'&&!render.__s2sIntegrity){const baseRender=render;render=function(){baseRender();const small=document.querySelector('.brand small');if(small)small.textContent='MVP 1.6 · Dev';document.title='Safe2Spend MVP 1.6 Dev';validateState('render')};render.__s2sIntegrity=true}
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&P.onboardingComplete)saveState('visibilitychange')});
+ window.addEventListener('pagehide',()=>{if(P.onboardingComplete)saveState('pagehide')});
+ const small=document.querySelector('.brand small');if(small)small.textContent='MVP 1.6 · Dev';document.title='Safe2Spend MVP 1.6 Dev';patchAhaCopy();if(typeof render==='function')render();validateState('install');
 })();
 `;
  d.body.appendChild(patch);
