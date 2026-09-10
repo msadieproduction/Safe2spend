@@ -453,42 +453,204 @@ button,input,select{font:inherit}.app{max-width:580px;margin:auto;padding:18px 1
 <script src="s2s-core.js"></script><script>
 'use strict';const C=S2SCore,$=id=>document.getElementById(id),money=v=>'$'+Math.round(C.n(v)).toLocaleString(),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));let state=C.loadState(localStorage),draft=state.onboardingComplete?{...state}:C.defaultState(),step=0,currentAction='spend',incomeMode='decide';
 function bootQA(){const qa=C.runInvariantTests();if(!qa.pass){$('qaBanner').classList.add('show');$('qaBanner').textContent='QA BLOCK: '+qa.results.filter(x=>!x.pass).map(x=>x.name).join(', ');console.error('[S2S QA][CORE]',qa)}else console.info('[S2S QA][CORE PASS]',qa.results.map(x=>x.name));}
-function setOpeningBalanceState(kind,open){const id=kind==='savings'?'savingsOptional':'cashOptional';$(id).classList.toggle('active',!!open)}
-function toggleOpeningBalance(kind){const id=kind==='savings'?'savingsOptional':'cashOptional';setOpeningBalanceState(kind,!$(id).classList.contains('active'))}
-function removeOpeningBalance(kind){const input=kind==='savings'?$('oSavings'):$('oCash');input.value='';setOpeningBalanceState(kind,false)}
-function togglePrivacyDetails(){$('privacyDetails').classList.toggle('open')}
-function payDayOptions(){return ['1','5','10','15','20','25','last']}
-function populatePayDaySelectors(){for(const id of ['semiDay1','semiDay2']){$(id).innerHTML=payDayOptions().map(v=>'<option value="'+v+'">'+(v==='last'?'Last day':v+(v==='1'?'st':v==='5'?'th':v==='10'?'th':v==='15'?'th':v==='20'?'th':'th'))+'</option>').join('')} $('semiDay1').value=draft.payDays?.[0]||'15';$('semiDay2').value=draft.payDays?.[1]||'last'}
-function pickFreq(f,btn){draft.payFreq=f;document.querySelectorAll('#freqs .freq-choice').forEach(x=>x.classList.toggle('active',x===btn));syncPayScheduleUI()}
-function syncPayScheduleUI(){const semi=draft.payFreq==='semimonthly';$('semiPaydays').classList.toggle('show',semi);$('nextPaySection').style.display=semi?'none':'block'}
-function semimonthlyDates(){const tmp={...draft,payFreq:'semimonthly',payDays:[$('semiDay1').value,$('semiDay2').value],nextPayday:C.iso(C.today())};return C.nextPayDates(tmp,2,C.today())}
-function startBillComposer(){const picked=$('billPicker').value;if(!picked)return;const other=picked==='Other bill';$('billComposer').innerHTML='<div class="card" style="margin-top:10px"><div class="field '+(other?'':'hide')+'"><label>What’s this bill called?</label><div class="input"><input id="newBillName" placeholder="Gym membership"></div></div><div class="two"><div class="field"><label>Amount</label><div class="input"><span>$</span><input id="newBillAmount" inputmode="decimal"></div></div><div class="field"><label>Next due date</label><div class="input"><input id="newBillDue" type="date"></div></div></div><div class="field"><label>Repeats</label><div class="input"><select id="newBillFreq"><option value="weekly">Weekly</option><option value="biweekly">Every 2 weeks</option><option value="semimonthly">Twice a month</option><option value="monthly" selected>Monthly</option><option value="quarterly">Every 3 months</option><option value="semiannual">Every 6 months</option><option value="yearly">Yearly</option><option value="once">One time</option></select></div></div><div class="step-actions"><button class="ghost" type="button" onclick="cancelBillComposer()">Cancel</button><button class="primary" type="button" onclick="commitBillComposer()">+ Add this bill</button></div></div>'}
-function cancelBillComposer(){$('billComposer').innerHTML='';$('billPicker').value=''}
-function commitBillComposer(){const picked=$('billPicker').value;const name=picked==='Other bill'?($('newBillName').value.trim()||'Other bill'):picked;const amount=C.n($('newBillAmount').value),due=$('newBillDue').value,freq=$('newBillFreq').value;if(!amount||!due){$('billAddStatus').textContent='Add an amount and due date first.';return}const dup=draft.bills.some(b=>b.name.toLowerCase()===name.toLowerCase());draft.bills=[{id:'bill-'+Date.now(),name,amount,nextDue:due,freq},...draft.bills];$('billAddStatus').textContent=dup?'Added. You already have another bill with this name.':'✓ '+name+' added';cancelBillComposer();renderOnboardBills()}
-function renderOnboardBills(){const total=draft.bills.reduce((s,b)=>s+b.amount*(b.freq==='weekly'?52/12:b.freq==='biweekly'?26/12:b.freq==='semimonthly'?2:b.freq==='quarterly'?1/3:b.freq==='semiannual'?1/6:b.freq==='yearly'?1/12:b.freq==='once'?0:1),0);$('billCount').textContent='('+draft.bills.length+')';$('billSummaryLine').textContent=draft.bills.length?'About '+money(total)+'/month in recurring bills':'No recurring bills added yet.';$('onBills').innerHTML=draft.bills.map((b,i)=>'<div class="bill-item" data-i="'+i+'"><div class="summary"><div><strong>'+esc(b.name)+'</strong><div class="bill-summary-line">'+money(b.amount)+' · '+esc(b.freq)+'</div></div><button class="soft" type="button" onclick="toggleBillEditor('+i+')">Edit</button></div><div class="editor"><div class="two"><div class="field"><label>Bill name</label><div class="input"><input class="editBillName" value="'+esc(b.name)+'"></div></div><div class="field"><label>Amount</label><div class="input"><span>$</span><input class="editBillAmount" inputmode="decimal" value="'+b.amount+'"></div></div></div><div class="two"><div class="field"><label>Next due</label><div class="input"><input class="editBillDue" type="date" value="'+b.nextDue+'"></div></div><div class="field"><label>Repeats</label><div class="input"><select class="editBillFreq"><option value="weekly">Weekly</option><option value="biweekly">Every 2 weeks</option><option value="semimonthly">Twice a month</option><option value="monthly">Monthly</option><option value="quarterly">Every 3 months</option><option value="semiannual">Every 6 months</option><option value="yearly">Yearly</option><option value="once">One time</option></select></div></div></div><div class="step-actions"><button class="danger" type="button" onclick="removeBill('+i+')">Delete bill</button><button class="primary" type="button" onclick="saveBillEdit('+i+')">Save changes</button></div></div></div>').join('');document.querySelectorAll('#onBills .bill-item').forEach((el,i)=>el.querySelector('.editBillFreq').value=draft.bills[i].freq)}
-function toggleBillEditor(i){document.querySelector('#onBills .bill-item[data-i="'+i+'"]').classList.toggle('open')}
-function saveBillEdit(i){const el=document.querySelector('#onBills .bill-item[data-i="'+i+'"]');draft.bills[i]={...draft.bills[i],name:el.querySelector('.editBillName').value.trim()||'Bill',amount:C.n(el.querySelector('.editBillAmount').value),nextDue:el.querySelector('.editBillDue').value,freq:el.querySelector('.editBillFreq').value};renderOnboardBills()}
-function removeBill(i){draft.bills.splice(i,1);renderOnboardBills()}
-function toggleBillReview(){$('billReview').classList.toggle('hide');$('billReview').innerHTML=draft.bills.length?draft.bills.map(b=>'<div class="row"><span>'+esc(b.name)+'</span><strong>'+money(b.amount)+'</strong></div>').join(''):'<p class="muted">No bills added yet.</p>'}
-function openEverydayEstimator(){const b=draft.everydayBreakdown||{};$('estGroceries').value=b.groceries||'';$('estGasTransit').value=b.gasTransit||'';$('estDining').value=b.dining||'';$('estPersonal').value=b.personalHousehold||'';$('estOther').value=b.other||'';updateEverydayEstimateTotal();$('everydayEstimatorM').classList.add('open')}
-function updateEverydayEstimateTotal(){const total=['estGroceries','estGasTransit','estDining','estPersonal','estOther'].reduce((s,id)=>s+C.n($(id).value),0);$('estTotal').textContent=money(total)}
-function useEverydayEstimate(){draft.everydayBreakdown={groceries:C.n($('estGroceries').value),gasTransit:C.n($('estGasTransit').value),dining:C.n($('estDining').value),personalHousehold:C.n($('estPersonal').value),other:C.n($('estOther').value)};draft.everydayAmount=Object.values(draft.everydayBreakdown).reduce((a,b)=>a+b,0);draft.everydaySource='estimator';$('oEveryday').value=draft.everydayAmount;$('everydayBreakdownSummary').textContent='Estimated from groceries, gas/transit, meals, personal/household and other needs.';closeModal('everydayEstimatorM')}
-function manualEverydayChanged(){draft.everydayAmount=C.n($('oEveryday').value);draft.everydaySource='manual';draft.everydayBreakdown=null;$('everydayBreakdownSummary').textContent=''}
+
+function setOpeningBalanceState(kind,open){
+  const shell=$(kind==='savings'?'savingsOptional':'cashOptional'); if(!shell)return;
+  shell.classList.toggle('active',!!open);
+  const trigger=shell.querySelector('.optional-trigger'); if(trigger)trigger.setAttribute('aria-expanded',open?'true':'false');
+}
+function toggleOpeningBalance(kind){const shell=$(kind==='savings'?'savingsOptional':'cashOptional');setOpeningBalanceState(kind,!shell?.classList.contains('active'))}
+function removeOpeningBalance(kind){const input=$(kind==='savings'?'osavings':'ocash');if(input)input.value='';setOpeningBalanceState(kind,false)}
+function openingStepChanged(){const b=$('openingContinue');if(b)b.disabled=!(C.n($('ocheck')?.value)>0)}
+
+function payDayOptions(){return Array.from({length:28},(_,i)=>String(i+1)).concat('last')}
+function populatePayDaySelectors(){
+  for(const id of ['semiDay1','semiDay2']){
+    const el=$(id); if(!el)continue;
+    el.innerHTML=payDayOptions().map(v=>'<option value="'+v+'">'+(v==='last'?'Last day':v)+'</option>').join('');
+  }
+  if($('semiDay1'))$('semiDay1').value=draft.payDays?.[0]||'15';
+  if($('semiDay2'))$('semiDay2').value=draft.payDays?.[1]||'last';
+}
+function payDaySpecsCanCollide(a,b){
+  for(let m=0;m<12;m++){
+    const y=2028,max=new Date(y,m+1,0).getDate();
+    const day=v=>v==='last'?max:Math.min(max,Math.max(1,Number(v)||1));
+    if(day(a)===day(b))return true;
+  }
+  return false;
+}
+function syncSemiPaydays(){
+  draft.payDays=[$('semiDay1').value,$('semiDay2').value];
+  const bad=payDaySpecsCanCollide(draft.payDays[0],draft.payDays[1]);
+  if($('semiPayError'))$('semiPayError').textContent=bad?'Choose two paydays that stay separate in shorter months — for example, 15th and Last day.':'';
+  if(!bad){
+    const temp={...draft,payFreq:'semimonthly',nextPayday:C.iso(C.today())};
+    const dates=C.nextPayDates(temp,1,C.today());
+    draft.nextPayday=dates[0]?C.iso(dates[0]):'';
+  }
+}
+function pickFreq(f,e){draft.payFreq=f;document.querySelectorAll('#freqs .choice').forEach(x=>x.classList.remove('active'));e.classList.add('active');syncPayScheduleUI()}
+function syncPayScheduleUI(){
+  const semi=draft.payFreq==='semimonthly';
+  if($('semiPaydays'))$('semiPaydays').classList.toggle('show',semi);
+  if($('nextPaySection'))$('nextPaySection').style.display=semi?'none':'block';
+}
+const BILL_META={
+ 'Rent / Mortgage':{icon:'🏠'},'Car payment':{icon:'🚗'},'Auto insurance':{icon:'🛡️'},'Health insurance':{icon:'❤️'},
+ 'Phone':{icon:'📱'},'Internet':{icon:'🌐'},'Electricity':{icon:'⚡'},'Gas utility':{icon:'🔥'},'Water':{icon:'💧'},
+ 'Credit card minimum':{icon:'💳'},'Student loan':{icon:'🎓'},'Subscription':{icon:'🔁'},'Childcare':{icon:'👶'},'Pet care':{icon:'🐾'},'Other bill':{icon:'🧾'}
+};
+function recurrenceOptions(selected='monthly'){
+  return [['weekly','Weekly'],['biweekly','Every 2 weeks'],['semimonthly','Twice a month'],['monthly','Monthly'],['quarterly','Every 3 months'],['semiannual','Every 6 months'],['yearly','Yearly'],['once','One time']]
+    .map(([v,t])=>'<option value="'+v+'" '+(v===selected?'selected':'')+'>'+t+'</option>').join('');
+}
+function startBillComposer(){
+  const picked=$('obillPicker').value;
+  if(!picked){$('billComposer').className='bill-composer';$('billComposer').innerHTML='';return}
+  const other=picked==='Other bill',icon=(BILL_META[picked]||BILL_META['Other bill']).icon;
+  $('billComposer').className='bill-composer open';
+  $('billComposer').innerHTML=
+    '<div class="composer-head"><div class="composer-title"><span class="bill-icon">'+icon+'</span><div><strong>'+esc(picked)+'</strong><small>Tell us what Safe2Spend needs to plan for it.</small></div></div><button type="button" class="composer-cancel" onclick="cancelBillComposer()">Cancel</button></div>'+
+    '<div class="field bill-other-name '+(other?'show':'')+'"><label>What’s this bill called?</label><div class="input"><input id="newBillName" value="'+(other?'':esc(picked))+'" placeholder="Gym membership"></div></div>'+
+    '<div class="grid2"><div class="field"><label>Amount</label><div class="input"><span>$</span><input id="newBillAmount" inputmode="decimal" placeholder="0"></div></div><div class="field"><label>Next due date</label><div class="input"><input id="newBillDue" type="date"></div></div></div>'+
+    '<div class="field"><label>Repeats</label><div class="input"><select id="newBillFreq">'+recurrenceOptions('monthly')+'</select></div></div>'+
+    '<div id="duplicateBillNote" class="duplicate-note"></div><div id="composerError" class="composer-error"></div>'+
+    '<div class="composer-actions"><button class="primary full" type="button" onclick="commitBillComposer()">+ Add this bill</button><div class="composer-help">You can edit this anytime. Safe2Spend only uses it after you add it.</div></div>';
+}
+function cancelBillComposer(){$('billComposer').className='bill-composer';$('billComposer').innerHTML='';$('obillPicker').value=''}
+function commitBillComposer(){
+  const picked=$('obillPicker').value,name=picked==='Other bill'?($('newBillName')?.value||'').trim():picked;
+  const amount=C.n($('newBillAmount')?.value),due=$('newBillDue')?.value,freq=$('newBillFreq')?.value||'monthly';
+  if(!name||!amount||!due){$('composerError').textContent=!name?'Give this bill a name.':!amount?'Enter the bill amount.':'Choose the next due date.';return}
+  const dup=draft.bills.some(b=>String(b.name).toLowerCase()===name.toLowerCase());
+  draft.bills=[{id:'bill-'+Date.now(),name,amount,nextDue:due,freq},...draft.bills];
+  $('billAddStatus').textContent=dup?'Added. You already have another bill with this name.':'✓ '+name+' added';
+  cancelBillComposer(); renderOnboardBills();
+}
+function toggleBillReview(force){
+  const p=$('billReviewPanel'); if(!p)return;
+  const open=typeof force==='boolean'?force:!p.classList.contains('open'); p.classList.toggle('open',open);
+}
+function renderOnboardBills(){
+  const factor=f=>({weekly:52/12,biweekly:26/12,semimonthly:2,monthly:1,quarterly:1/3,semiannual:1/6,yearly:1/12,once:0}[f]??1);
+  const total=draft.bills.reduce((s,b)=>s+C.n(b.amount)*factor(b.freq),0);
+  if($('obillHeading'))$('obillHeading').textContent='Your bills ('+draft.bills.length+')';
+  if($('obillMonthly'))$('obillMonthly').textContent=draft.bills.length?'About '+money(total)+'/month in recurring bills':'No bills added yet.';
+  if($('billReviewToggle'))$('billReviewToggle').disabled=!draft.bills.length;
+  const box=$('obills'); if(!box)return;
+  if(!draft.bills.length){box.innerHTML='<div class="bill-empty">No bills yet. Choose a type above to add your first one.</div>';return}
+  box.innerHTML=draft.bills.map((b,i)=>
+   '<div class="bill-item" data-i="'+i+'"><div class="bill-summary-row"><span class="bill-number">#'+(draft.bills.length-i)+'</span>'+
+   '<div class="bill-main" onclick="toggleBillEditor('+i+')"><span class="bill-icon">'+((BILL_META[b.name]||BILL_META['Other bill']).icon)+'</span><div class="bill-copy"><strong>'+esc(b.name)+'</strong><small>'+money(b.amount)+' · '+esc(b.freq)+'</small></div></div>'+
+   '<button class="bill-edit-btn" type="button" onclick="toggleBillEditor('+i+')">Edit</button></div>'+
+   '<div class="bill-editor"><div class="grid"><div class="field"><label>Bill name</label><div class="input"><input class="editBillName" value="'+esc(b.name)+'"></div></div>'+
+   '<div class="field"><label>Amount</label><div class="input"><span>$</span><input class="editBillAmount" inputmode="decimal" value="'+b.amount+'"></div></div></div>'+
+   '<div class="grid2"><div class="field"><label>Next due date</label><div class="input"><input class="editBillDue" type="date" value="'+b.nextDue+'"></div></div>'+
+   '<div class="field"><label>Repeats</label><div class="input"><select class="editBillFreq">'+recurrenceOptions(b.freq)+'</select></div></div></div>'+
+   '<div class="bill-editor-actions"><button class="primary" onclick="saveBillEdit('+i+')">Save changes</button><button class="bill-delete" onclick="removeBill('+i+')">Delete bill</button></div></div></div>'
+  ).join('');
+}
+function toggleBillEditor(i){document.querySelector('#obills .bill-item[data-i="'+i+'"]')?.querySelector('.bill-editor')?.classList.toggle('open')}
+function saveBillEdit(i){
+  const el=document.querySelector('#obills .bill-item[data-i="'+i+'"]'); if(!el)return;
+  draft.bills[i]={...draft.bills[i],name:el.querySelector('.editBillName').value.trim()||'Bill',amount:C.n(el.querySelector('.editBillAmount').value),nextDue:el.querySelector('.editBillDue').value,freq:el.querySelector('.editBillFreq').value};
+  $('billAddStatus').textContent='✓ '+draft.bills[i].name+' updated'; renderOnboardBills();
+}
+function removeBill(i){const name=draft.bills[i]?.name||'Bill';draft.bills.splice(i,1);$('billAddStatus').textContent=name+' removed';renderOnboardBills()}
+
+function invalidateEverydayBreakdown(){draft.everydaySource='manual';draft.everydayBreakdown=null}
+function syncEverydaySummary(){
+  draft.everydayAmount=C.n($('oeverydayAmount')?.value);
+  if($('everydayNormalized'))$('everydayNormalized').textContent='Safe2Spend will protect '+money(draft.everydayAmount)+' from each paycheck for everyday expenses.';
+}
+function openEverydayEstimator(){
+  const b=draft.everydayBreakdown||{};
+  $('estFood').value=b.groceries||'';$('estGas').value=b.gasTransit||'';$('estMeals').value=b.dining||'';$('estHouse').value=b.personalHousehold||'';$('estOther').value=b.other||'';
+  updateEverydayEstimateTotal();$('everydayEstimateM').classList.add('open');
+}
+function updateEverydayEstimateTotal(){const total=['estFood','estGas','estMeals','estHouse','estOther'].reduce((s,id)=>s+C.n($(id)?.value),0);$('everydayEstimateTotal').textContent=money(total)}
+function useEverydayEstimate(){
+  draft.everydayBreakdown={groceries:C.n($('estFood').value),gasTransit:C.n($('estGas').value),dining:C.n($('estMeals').value),personalHousehold:C.n($('estHouse').value),other:C.n($('estOther').value)};
+  draft.everydayAmount=Object.values(draft.everydayBreakdown).reduce((a,b)=>a+b,0);draft.everydaySource='estimator';$('oeverydayAmount').value=draft.everydayAmount;syncEverydaySummary();closeModal('everydayEstimateM');
+}
 function continueWithZeroEveryday(){allowZeroEverydayOnce=true;closeModal('everydayZeroM');nextOnboard()}
-function startSavingsPlan(){$('savingsGate').classList.add('hide');$('savingsBuilder').classList.remove('hide');if(!draft.savePace||draft.savePace==='none')draft.savePace='balanced';renderSavingsStep()}
+
+let savingsBuilderUnlocked=false;
+function startSavingsPlan(){savingsBuilderUnlocked=true;if(draft.savePace==='none'||!draft.savePace)draft.savePace='balanced';$('savingsGate').style.display='none';$('savingsBuilder').classList.add('open');renderSavingsStep()}
 function skipSavingsOnboarding(){draft.savePace='none';draft.savePerPaycheck=0;step=4;showStep()}
-function goalTypeChanged(){draft.goalType=$('oGoalType').value;$('customGoalWrap').classList.toggle('hide',draft.goalType!=='custom');if(draft.goalType!=='custom')draft.goalName=draft.goalType==='save'?'Build savings':draft.goalType;renderSavingsStep()}
-function toggleSavingsWhy(){$('savingsWhy').classList.toggle('open')}
-function selectSavingsPace(key){draft.savePace=key;const p=C.getSavingsPaces(draft);if(key==='easy')draft.savePerPaycheck=p.comfortable;else if(key==='balanced')draft.savePerPaycheck=p.balanced;else if(key==='push')draft.savePerPaycheck=p.faster;$('customSaveWrap').classList.toggle('hide',key!=='custom');renderSavingsStep()}
-function customSavingsChanged(){draft.savePace='custom';const raw=C.n($('oSaveCustom').value),cap=C.capCustomSavings(draft,raw);draft.savePerPaycheck=cap;$('customSaveWarning').textContent=raw>cap?'That’s more than the '+money(cap)+' currently available after bills and everyday spending. We’ll cap this plan at '+money(cap)+'.':'';renderSavingsStep()}
-function renderSavingsStep(){captureDraft(false);const p=C.getSavingsPaces(draft);const opts=[['easy','Comfortable',p.comfortable,'Steady progress with more flexibility today.'],['balanced','Balanced',p.balanced,'Meaningful progress while keeping breathing room.'],['push','Faster',p.faster,'Reach your goal sooner with less Safe2Spend available.']];$('paceOptions').innerHTML=opts.map(o=>'<div class="pace-card '+(draft.savePace===o[0]?'active':'')+'"><button type="button" onclick="selectSavingsPace(\''+o[0]+'\')"><strong>'+o[1]+(o[0]==='balanced'?'<span class="recommended">Recommended</span>':'')+'</strong><div style="font-size:22px;font-weight:950;margin:5px 0">'+money(o[2])+'/paycheck</div><small>'+o[3]+'</small></button></div>').join('')+'<div class="pace-card '+(draft.savePace==='custom'?'active':'')+'"><button type="button" onclick="selectSavingsPace(\'custom\')"><strong>Custom</strong><small>Choose your own amount.</small></button></div>';const proj=C.getSavingsProjection(draft,draft.savePerPaycheck);const safe=Math.max(0,p.available-draft.savePerPaycheck);$('savingsPlanPreview').innerHTML='<div class="row"><div><small class="muted">YOUR PLAN</small><strong style="display:block">'+esc(goalLabel())+'</strong></div>'+(draft.goalAmount?'<strong>'+money(draft.goalAmount)+' goal</strong>':'')+'</div><div class="preview-grid" style="margin-top:10px"><div><small>Savings</small><strong>'+money(draft.savePerPaycheck)+'/paycheck</strong></div><div><small>Safe2Spend</small><strong>'+money(safe)+'/paycheck</strong></div><div><small>Outlook</small><strong>'+(proj.etaDate?'On pace for '+C.parseDate(proj.etaDate).toLocaleDateString(undefined,{month:'short',year:'numeric'}):draft.savePerPaycheck?'About '+money(proj.annual)+' over 1 year':'No contribution selected')+'</strong></div></div><p class="muted">Bills and everyday spending are accounted for before savings.</p>'}
-function goalLabel(){if(draft.goalType==='custom')return $('oGoalName')?.value.trim()||draft.goalName||'Something important';if(draft.goalType==='save')return 'Build savings';return draft.goalType||draft.goalName||'Build savings'}
-function toggleAhaMath(){$('ahaMath').classList.toggle('open')}
-function captureDraft(fromDom=true){if(fromDom){draft.checking=C.n($('oChecking').value);draft.savings=C.n($('oSavings').value);draft.cash=C.n($('oCash').value);draft.paycheck=C.n($('oPaycheck').value);draft.everydayAmount=C.n($('oEveryday').value);draft.goalAmount=C.n($('oGoalAmount')?.value);draft.goalName=goalLabel();draft.goalType=$('oGoalType')?.value||draft.goalType;if(draft.payFreq==='semimonthly'){draft.payDays=[$('semiDay1').value,$('semiDay2').value];const dates=semimonthlyDates();draft.nextPayday=dates[0]?C.iso(dates[0]):''}else draft.nextPayday=$('oNext').value}return draft}
-function showStep(){document.querySelectorAll('.onstep').forEach((x,i)=>x.classList.toggle('active',i===step));$('onbar').style.width=((step+1)*20)+'%';if(step===0){if(draft.savings)setOpeningBalanceState('savings',true);if(draft.cash)setOpeningBalanceState('cash',true)}if(step===1){populatePayDaySelectors();document.querySelectorAll('#freqs .freq-choice').forEach(x=>x.classList.toggle('active',x.dataset.freq===draft.payFreq));syncPayScheduleUI()}if(step===2)renderOnboardBills();if(step===3&&draft.savePace!=='none')renderSavingsStep();if(step===4)renderAha()}
-function nextOnboard(){captureDraft();if(step===0&&!draft.checking){$('oChecking').focus();return}if(step===1){if(draft.payFreq==='semimonthly'){const dates=semimonthlyDates();if(dates.length<2||C.iso(dates[0])===C.iso(dates[1])){$('semiError').classList.remove('hide');$('semiError').textContent='Choose two paydays that stay separate, including in shorter months.';return}else $('semiError').classList.add('hide')}else if(!draft.nextPayday){$('oNext').focus();return}if(!draft.paycheck){$('oPaycheck').focus();return}}if(step===2&&!draft.everydayAmount&&!allowZeroEverydayOnce){$('everydayZeroM').classList.add('open');return}if(step===2)allowZeroEverydayOnce=false;if(step===3&&draft.savePace==='custom')draft.savePerPaycheck=C.capCustomSavings(draft,$('oSaveCustom').value);step=Math.min(4,step+1);showStep()}
+function goalIconFor(type){return {'Emergency fund':'🛡','Trip / Vacation':'✈','Vehicle':'🚗','Home':'🏠','Education':'🎓','save':'◎','custom':'•••'}[type]||'◎'}
+function goalTypeSelectChanged(){draft.goalType=$('goalTypeSelect').value;$('goalTypeValue').value=draft.goalType;$('customGoalWrap').classList.toggle('open',draft.goalType==='custom');$('goalSelectIcon').textContent=goalIconFor(draft.goalType);if(draft.goalType!=='custom')draft.goalName=draft.goalType==='save'?'Build savings':draft.goalType;savingsGoalChanged()}
+function savingsGoalChanged(){draft.goalName=goalLabel();draft.goalAmount=C.n($('ogoalAmt').value);renderSavingsStep()}
+function toggleDisclosure(id){$(id)?.classList.toggle('open')}
+function savingsPaceSelectChanged(){
+  const key=$('savingsPaceSelect').value;draft.savePace=key;const p=C.getSavingsPaces(draft);
+  if(key==='easy')draft.savePerPaycheck=p.comfortable;else if(key==='balanced')draft.savePerPaycheck=p.balanced;else if(key==='push')draft.savePerPaycheck=p.faster;
+  $('compactCustomEditor').classList.toggle('open',key==='custom'); if(key==='custom')customSavingsChanged(); renderSavingsStep();
+}
+function customSavingsChanged(){
+  draft.savePace='custom';const raw=C.n($('customSaveAmount').value),cap=C.capCustomSavings(draft,raw);draft.savePerPaycheck=cap;
+  $('customSaveWarning').textContent=raw>cap?'That’s more than the '+money(cap)+' currently available after bills and everyday spending. We’ll cap this plan at '+money(cap)+'.':'';
+  renderSavingsStep();
+}
+function goalLabel(){if(draft.goalType==='custom')return $('ogoalName')?.value.trim()||draft.goalName||'Something important';if(draft.goalType==='save')return 'Build savings';return draft.goalType||draft.goalName||'Build savings'}
+function renderSavingsStep(){
+  if(!savingsBuilderUnlocked&&draft.savePace!=='none'&&(draft.goalType||draft.savePerPaycheck))savingsBuilderUnlocked=true;
+  if($('savingsGate'))$('savingsGate').style.display=savingsBuilderUnlocked?'none':'';
+  if($('savingsBuilder'))$('savingsBuilder').classList.toggle('open',savingsBuilderUnlocked); if(!savingsBuilderUnlocked)return;
+  const p=C.getSavingsPaces(draft),opts=[['easy','Comfortable',p.comfortable,'Steady progress with more flexibility today.'],['balanced','Balanced',p.balanced,'Meaningful progress while keeping breathing room.'],['push','Faster',p.faster,'Reach your goal sooner with less Safe2Spend available.']];
+  $('savingsPaceSelect').innerHTML=opts.map(o=>'<option value="'+o[0]+'">'+o[1]+(o[0]==='balanced'?' — Recommended':'')+' • '+money(o[2])+'/paycheck</option>').join('')+'<option value="custom">Custom amount</option>';
+  $('savingsPaceSelect').value=draft.savePace==='custom'?'custom':draft.savePace||'balanced';
+  if(draft.savePace!=='custom'){const o=opts.find(x=>x[0]===draft.savePace)||opts[1];draft.savePace=o[0];draft.savePerPaycheck=o[2]}
+  $('compactCustomEditor').classList.toggle('open',draft.savePace==='custom');
+  const chosen=opts.find(x=>x[0]===draft.savePace);
+  $('selectedPaceCard').innerHTML=chosen?'<div class="selected-pace-head"><div><strong>'+chosen[1]+(chosen[0]==='balanced'?'<span class="recommended-tag">Recommended</span>':'')+'</strong><div class="selected-pace-amount">'+money(chosen[2])+' per paycheck</div><p class="selected-pace-desc">'+chosen[3]+'</p></div></div>':'<div class="selected-pace-head"><div><strong>Custom amount</strong><div class="selected-pace-amount">'+money(draft.savePerPaycheck)+' per paycheck</div></div></div>';
+  const proj=C.getSavingsProjection(draft,draft.savePerPaycheck),safe=Math.max(0,p.available-draft.savePerPaycheck);
+  $('savingsPlanPreview').innerHTML='<div class="preview-title"><div><small class="muted">YOUR PLAN</small><strong>'+esc(goalLabel())+'</strong></div>'+(draft.goalAmount?'<strong>'+money(draft.goalAmount)+' goal</strong>':'')+'</div><div class="preview-grid"><div><small>Savings</small><strong>'+money(draft.savePerPaycheck)+'/paycheck</strong></div><div><small>Safe2Spend</small><strong>'+money(safe)+'/paycheck</strong></div><div><small>Outlook</small><strong>'+(proj.etaDate?'On pace for '+C.parseDate(proj.etaDate).toLocaleDateString(undefined,{month:'short',year:'numeric'}):draft.savePerPaycheck?'About '+money(proj.annual)+' over 1 year':'No savings contribution selected')+'</strong></div></div><p class="preview-note">Bills and everyday spending are accounted for before savings.</p>';
+}
+function toggleAhaMath(){$('ahaMath')?.classList.toggle('open')}
+function captureDraft(){
+  draft.checking=C.n($('ocheck')?.value);draft.savings=C.n($('osavings')?.value);draft.cash=C.n($('ocash')?.value);
+  draft.paycheck=C.n($('opayamt')?.value);draft.everydayAmount=C.n($('oeverydayAmount')?.value);
+  draft.goalType=$('goalTypeValue')?.value||draft.goalType;draft.goalName=goalLabel();draft.goalAmount=C.n($('ogoalAmt')?.value);
+  if(draft.payFreq==='semimonthly')syncSemiPaydays();else draft.nextPayday=$('onextpay')?.value||draft.nextPayday;
+  return draft;
+}
+function showStep(){
+  document.querySelectorAll('.onstep').forEach((x,i)=>x.classList.toggle('active',i===step));$('onbar').style.width=((step+1)/5*100)+'%';
+  if(step===0){if(draft.savings)setOpeningBalanceState('savings',true);if(draft.cash)setOpeningBalanceState('cash',true);openingStepChanged()}
+  if(step===1){populatePayDaySelectors();document.querySelectorAll('#freqs .choice').forEach(x=>x.classList.toggle('active',(x.getAttribute('onclick')||'').includes("'"+draft.payFreq+"'")));syncPayScheduleUI()}
+  if(step===2){renderOnboardBills();syncEverydaySummary()}
+  if(step===3)renderSavingsStep();
+  if(step===4)renderAha();
+}
+function nextOnboard(){
+  captureDraft();
+  if(step===0&&!draft.checking){$('ocheck').focus();return}
+  if(step===1){
+    if(draft.payFreq==='semimonthly'){if(payDaySpecsCanCollide($('semiDay1').value,$('semiDay2').value)){if($('semiPayError'))$('semiPayError').textContent='Choose two paydays that stay separate in shorter months — for example, 15th and Last day.';return}}
+    else if(!draft.nextPayday){$('onextpay').focus();return}
+    if(!draft.paycheck){$('opayamt').focus();return}
+  }
+  if(step===2&&!draft.everydayAmount&&!allowZeroEverydayOnce){$('everydayZeroM').classList.add('open');return}
+  if(step===2)allowZeroEverydayOnce=false;
+  if(step===3&&draft.savePace==='custom')draft.savePerPaycheck=C.capCustomSavings(draft,$('customSaveAmount').value);
+  step=Math.min(4,step+1);showStep();
+}
 function backOnboard(){step=Math.max(0,step-1);showStep()}
-function renderAha(){captureDraft();const p=C.calculatePlan(draft),x=p.nextPaycheck,total=Math.max(1,x.income),proj=C.getSavingsProjection(draft,x.savingsTransfer);$('ahaSafe').textContent=money(x.projectedSafe2Spend);$('ahaHeroSub').textContent=x.projectedSafe2Spend>0?'After bills, everyday spending, and your savings plan are accounted for.':'Everything available from this paycheck already has a job.';$('ahaPills').innerHTML='<span>✓ Bills prepared</span><span>✓ Everyday protected</span><span>'+(x.savingsTransfer?'✓ Savings planned':'Savings optional')+'</span>';$('ahaPaycheckTitle').textContent='Your '+money(x.income)+' paycheck';$('ahaBar').innerHTML='<span style="width:'+(x.billReserve/total*100)+'%"></span><span style="width:'+(x.everyday/total*100)+'%"></span><span style="width:'+(x.savingsTransfer/total*100)+'%"></span><span style="width:'+(x.projectedSafe2Spend/total*100)+'%"></span>';$('ahaFour').innerHTML='<div><strong>'+money(x.billReserve)+'</strong><small>Bills · '+Math.round(x.billReserve/total*100)+'%</small></div><div><strong>'+money(x.everyday)+'</strong><small>Everyday · '+Math.round(x.everyday/total*100)+'%</small></div><div><strong>'+money(x.savingsTransfer)+'</strong><small>Savings · '+Math.round(x.savingsTransfer/total*100)+'%</small></div><div><strong>'+money(x.projectedSafe2Spend)+'</strong><small>Safe2Spend · '+Math.round(x.projectedSafe2Spend/total*100)+'%</small></div>';$('ahaMeaning').innerHTML='<div><strong>Your upcoming bills are accounted for.</strong><p class="muted">'+money(x.billReserve)+' is being prepared from this paycheck.</p></div><div><strong>Everyday spending has room.</strong><p class="muted">'+money(x.everyday)+' stays available for regular day-to-day expenses until your next payday.</p></div><div><strong>'+(x.savingsTransfer?'You’re making progress toward your goal.':'Savings isn’t part of this plan yet.')+'</strong><p class="muted">'+(x.savingsTransfer?money(x.savingsTransfer)+' is planned for savings from this paycheck.':'You can add savings whenever you’re ready.')+'</p></div><div><strong>Your current balance is separate.</strong><p class="muted">This '+money(x.projectedSafe2Spend)+' is a projection for the next paycheck, not money Safe2Spend is claiming you can spend today.</p></div>';$('ahaMath').innerHTML='<div class="row"><span>Paycheck amount</span><strong>'+money(x.income)+'</strong></div><div class="row"><span>Bills prepared</span><strong>− '+money(x.billReserve)+'</strong></div><div class="row"><span>Everyday spending</span><strong>− '+money(x.everyday)+'</strong></div><div class="row"><span>Savings</span><strong>− '+money(x.savingsTransfer)+'</strong></div><div class="row"><span>Projected Safe2Spend</span><strong>'+money(x.projectedSafe2Spend)+'</strong></div>';$('ahaMath').classList.remove('open');if(x.savingsTransfer){$('ahaOutlookCard').classList.remove('hide');$('ahaOutlook').innerHTML='<div><small>3 months</small><strong>≈ '+money(proj.annual/4)+'</strong></div><div><small>6 months</small><strong>≈ '+money(proj.annual/2)+'</strong></div><div><small>1 year</small><strong>≈ '+money(proj.annual)+'</strong></div><div><small>Goal estimate</small><strong>'+(proj.etaDate?C.parseDate(proj.etaDate).toLocaleDateString(undefined,{month:'short',year:'numeric'}):'Keep building')+'</strong></div>'}else $('ahaOutlookCard').classList.add('hide')}
+function renderAha(){
+  captureDraft();const p=C.calculatePlan(draft),x=p.nextPaycheck,total=Math.max(1,x.income),proj=C.getSavingsProjection(draft,x.savingsTransfer);
+  $('ahaSafe').textContent=money(x.projectedSafe2Spend);$('ahaWhyLabel').textContent='Why '+money(x.projectedSafe2Spend)+'?';
+  $('ahaHeroSub').textContent=x.projectedSafe2Spend>0?'After bills, everyday spending, and your savings plan are accounted for.':'Everything available from this paycheck already has a job.';
+  $('ahaPills').innerHTML='<span class="aha-pill">✓ Bills prepared</span><span class="aha-pill">✓ Everyday protected</span><span class="aha-pill">'+(x.savingsTransfer?'✓ Savings planned':'Savings optional')+'</span>';
+  $('ahaPaycheckTitle').textContent='Your '+money(x.income)+' paycheck';
+  $('ahaBar').innerHTML='<span class="bills" style="width:'+(x.billReserve/total*100)+'%"></span><span class="everyday" style="width:'+(x.everyday/total*100)+'%"></span><span class="savings" style="width:'+(x.savingsTransfer/total*100)+'%"></span><span class="safe" style="width:'+(x.projectedSafe2Spend/total*100)+'%"></span>';
+  $('ahaFour').innerHTML='<div><strong>'+money(x.billReserve)+'</strong><small>Bills · '+Math.round(x.billReserve/total*100)+'%</small></div><div><strong>'+money(x.everyday)+'</strong><small>Everyday · '+Math.round(x.everyday/total*100)+'%</small></div><div><strong>'+money(x.savingsTransfer)+'</strong><small>Savings · '+Math.round(x.savingsTransfer/total*100)+'%</small></div><div><strong>'+money(x.projectedSafe2Spend)+'</strong><small>Safe2Spend · '+Math.round(x.projectedSafe2Spend/total*100)+'%</small></div>';
+  $('ahaAccomplish').innerHTML='<div class="aha-accomplish-row"><span class="aha-check">✓</span><div><strong>Your upcoming bills are accounted for.</strong><p>'+money(x.billReserve)+' is being prepared from this paycheck.</p></div></div><div class="aha-accomplish-row"><span class="aha-check">✓</span><div><strong>Everyday spending has room.</strong><p>'+money(x.everyday)+' stays available for regular day-to-day expenses until your next payday.</p></div></div><div class="aha-accomplish-row"><span class="aha-check">'+(x.savingsTransfer?'✓':'○')+'</span><div><strong>'+(x.savingsTransfer?'You’re making progress toward your goal.':'Savings isn’t part of this plan yet.')+'</strong><p>'+(x.savingsTransfer?money(x.savingsTransfer)+' is planned for savings from this paycheck.':'You can add savings whenever you’re ready.')+'</p></div></div>';
+  $('ahaMath').innerHTML='<strong>Why '+money(x.projectedSafe2Spend)+'?</strong><div class="aha-math-row"><span>Paycheck amount</span><strong>'+money(x.income)+'</strong></div><div class="aha-math-row"><span>Bills prepared</span><strong>− '+money(x.billReserve)+'</strong></div><div class="aha-math-row"><span>Everyday spending</span><strong>− '+money(x.everyday)+'</strong></div><div class="aha-math-row"><span>Savings</span><strong>− '+money(x.savingsTransfer)+'</strong></div><div class="aha-math-row"><span>Projected Safe2Spend</span><strong>'+money(x.projectedSafe2Spend)+'</strong></div>';$('ahaMath').classList.remove('open');
+  if(x.savingsTransfer){$('ahaOutlookCard').style.display='';$('ahaOutlook').innerHTML='<div><small>3 months</small><strong>≈ '+money(proj.annual/4)+'</strong><small>saved</small></div><div><small>6 months</small><strong>≈ '+money(proj.annual/2)+'</strong><small>saved</small></div><div><small>1 year</small><strong>≈ '+money(proj.annual)+'</strong><small>saved</small></div><div><small>Goal estimate</small><strong>'+(proj.etaDate?C.parseDate(proj.etaDate).toLocaleDateString(undefined,{month:'short',year:'numeric'}):'Keep building')+'</strong></div>'}else $('ahaOutlookCard').style.display='none';
+  if($('ahaState')){$('ahaState').className='aha-state '+(x.projectedSafe2Spend<=0?'zero':x.income&&x.projectedSafe2Spend/x.income<.08?'tight':'good');$('ahaState').innerHTML=x.projectedSafe2Spend<=0?'<strong>This paycheck is fully spoken for.</strong><p>Your bills and everyday needs are using what’s available from this paycheck.</p>':'<strong>You have room to work with.</strong><p>Your priorities are accounted for, leaving about '+money(x.projectedSafe2Spend)+' projected flexible from this paycheck.</p>'}
+}
 function finishOnboarding(){captureDraft();draft.onboardingComplete=true;draft.s2sBalance=C.suggestedCurrentSafe(draft);draft.s2sActivity=[];draft.lastS2SReason='initial';state=C.saveState(localStorage,draft);$('onboard').classList.add('hide');renderAll()}
 let allowZeroEverydayOnce=false;
 function persist(next){state=C.saveState(localStorage,next);renderAll()}
