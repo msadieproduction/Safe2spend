@@ -577,7 +577,7 @@ function useEverydayEstimate(){
 function continueWithZeroEveryday(){allowZeroEverydayOnce=true;closeModal('everydayZeroM');nextOnboard()}
 
 let savingsBuilderUnlocked=false;
-function startSavingsPlan(){savingsBuilderUnlocked=true;if(draft.savePace==='none'||!draft.savePace)draft.savePace='balanced';$('savingsGate').style.display='none';$('savingsBuilder').classList.add('open');renderSavingsStep()}
+function startSavingsPlan(){savingsBuilderUnlocked=true;if(draft.savePace==='none'||!draft.savePace)draft.savePace='balanced';$('savingsGate').style.display='none';$('savingsBuilder').classList.add('open');if($('goalTypeValue')&&!$('goalTypeValue').value&&draft.goalType)$('goalTypeValue').value=draft.goalType;if($('goalTypeSelect')&&draft.goalType)$('goalTypeSelect').value=draft.goalType;if($('ogoalName')&&draft.goalName)$('ogoalName').value=draft.goalName;if($('ogoalAmt')&&draft.goalAmount)$('ogoalAmt').value=draft.goalAmount;renderSavingsStep()}
 function skipSavingsOnboarding(){draft.savePace='none';draft.savePerPaycheck=0;step=4;showStep()}
 function goalIconFor(type){return {'Emergency fund':'🛡','Trip / Vacation':'✈','Vehicle':'🚗','Home':'🏠','Education':'🎓','save':'◎','custom':'•••'}[type]||'◎'}
 function goalTypeSelectChanged(){draft.goalType=$('goalTypeSelect').value;$('goalTypeValue').value=draft.goalType;$('customGoalWrap').classList.toggle('open',draft.goalType==='custom');$('goalSelectIcon').textContent=goalIconFor(draft.goalType);if(draft.goalType!=='custom')draft.goalName=draft.goalType==='save'?'Build savings':draft.goalType;savingsGoalChanged()}
@@ -618,9 +618,9 @@ function captureDraft(){
 }
 function showStep(){
   document.querySelectorAll('.onstep').forEach((x,i)=>x.classList.toggle('active',i===step));$('onbar').style.width=((step+1)/5*100)+'%';
-  if(step===0){if(draft.savings)setOpeningBalanceState('savings',true);if(draft.cash)setOpeningBalanceState('cash',true);openingStepChanged()}
-  if(step===1){populatePayDaySelectors();document.querySelectorAll('#freqs .choice').forEach(x=>x.classList.toggle('active',(x.getAttribute('onclick')||'').includes("'"+draft.payFreq+"'")));syncPayScheduleUI()}
-  if(step===2){renderOnboardBills();syncEverydaySummary()}
+  if(step===0){if($('ocheck'))$('ocheck').value=draft.checking||'';if($('osavings'))$('osavings').value=draft.savings||'';if($('ocash'))$('ocash').value=draft.cash||'';if(draft.savings)setOpeningBalanceState('savings',true);if(draft.cash)setOpeningBalanceState('cash',true);openingStepChanged()}
+  if(step===1){if($('onextpay'))$('onextpay').value=draft.nextPayday||'';if($('opayamt'))$('opayamt').value=draft.paycheck||'';populatePayDaySelectors();document.querySelectorAll('#freqs .choice').forEach(x=>x.classList.toggle('active',(x.getAttribute('onclick')||'').includes("'"+draft.payFreq+"'")));syncPayScheduleUI()}
+  if(step===2){if($('oeverydayAmount'))$('oeverydayAmount').value=draft.everydayAmount||'';renderOnboardBills();syncEverydaySummary()}
   if(step===3)renderSavingsStep();
   if(step===4)renderAha();
 }
