@@ -1,6 +1,6 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.S2SCore=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
-const VERSION='1.6';
+const VERSION='1.6.2';
 const STORAGE_KEY='safe2spend_mvp14';
 const DAY=86400000;
 const n=v=>Math.max(0,Number(String(v??'').replace(/[$,\s]/g,''))||0);
@@ -8,8 +8,8 @@ const iso=d=>{const x=new Date(d);x.setHours(12,0,0,0);return x.toISOString().sl
 const parseDate=s=>{if(!s)return null;const p=String(s).slice(0,10).split('-').map(Number);if(p.length!==3||!p[0])return null;return new Date(p[0],p[1]-1,p[2],12)};
 const addDays=(d,days)=>{const x=new Date(d);x.setHours(12,0,0,0);x.setDate(x.getDate()+days);return x};
 const today=()=>{const x=new Date();x.setHours(12,0,0,0);return x};
-function defaultState(){return {stateVersion:VERSION,onboardingComplete:false,checking:0,cash:0,savings:0,payFreq:'weekly',nextPayday:'',payDays:['15','last'],paycheck:0,bills:[],everydayAmount:0,goalName:'',goalAmount:0,savePerPaycheck:0,savePace:'balanced',s2sBalance:null,s2sActivity:[],prePaydayAdjustments:[],lastProcessedPayday:null,lastS2SReason:'initial',updatedAt:null};}
-function migrateState(raw){const d=defaultState(),x=raw&&typeof raw==='object'?raw:{};const life=x.life||{};const everyday=n(x.everydayAmount||x.everydayInput?.amount)||(n(life.food)+n(life.gas)+n(life.other));const bills=Array.isArray(x.bills)?x.bills.filter(b=>n(b.amount)&&b.nextDue).map((b,i)=>({id:b.id||`bill-${i+1}`,name:String(b.name||'Bill'),amount:n(b.amount),nextDue:String(b.nextDue).slice(0,10),freq:b.freq||'monthly'})):[];const configured=!!x.onboardingComplete||(n(x.paycheck)>0&&!!x.nextPayday&&(bills.length>0||everyday>0||n(x.checking)+n(x.cash)+n(x.savings)>0));return {...d,...x,stateVersion:VERSION,onboardingComplete:configured,checking:n(x.checking),cash:n(x.cash),savings:n(x.savings),paycheck:n(x.paycheck),bills,everydayAmount:everyday,goalName:String(x.goalName||''),goalAmount:n(x.goalAmount),savePerPaycheck:n(x.savePerPaycheck),s2sBalance:x.s2sBalance===null||x.s2sBalance===undefined?null:n(x.s2sBalance),s2sActivity:Array.isArray(x.s2sActivity)?x.s2sActivity.slice(0,50):[],prePaydayAdjustments:Array.isArray(x.prePaydayAdjustments)?x.prePaydayAdjustments.slice(0,50):[],payDays:Array.isArray(x.payDays)&&x.payDays.length===2?x.payDays:['15','last']};}
+function defaultState(){return {stateVersion:VERSION,onboardingComplete:false,checking:0,cash:0,savings:0,payFreq:'weekly',nextPayday:'',payDays:['15','last'],paycheck:0,bills:[],everydayAmount:0,everydaySource:'manual',everydayBreakdown:null,goalType:'',goalName:'',goalAmount:0,savePerPaycheck:0,savePace:'balanced',s2sBalance:null,s2sActivity:[],prePaydayAdjustments:[],lastProcessedPayday:null,lastS2SReason:'initial',updatedAt:null};}
+function migrateState(raw){const d=defaultState(),x=raw&&typeof raw==='object'?raw:{};const life=x.life||{};const everyday=n(x.everydayAmount||x.everydayInput?.amount)||(n(life.food)+n(life.gas)+n(life.other));const bills=Array.isArray(x.bills)?x.bills.filter(b=>n(b.amount)&&b.nextDue).map((b,i)=>({id:b.id||`bill-${i+1}`,name:String(b.name||'Bill'),amount:n(b.amount),nextDue:String(b.nextDue).slice(0,10),freq:b.freq||'monthly'})):[];const configured=!!x.onboardingComplete||(n(x.paycheck)>0&&!!x.nextPayday&&(bills.length>0||everyday>0||n(x.checking)+n(x.cash)+n(x.savings)>0));return {...d,...x,stateVersion:VERSION,onboardingComplete:configured,checking:n(x.checking),cash:n(x.cash),savings:n(x.savings),paycheck:n(x.paycheck),bills,everydayAmount:everyday,everydaySource:x.everydaySource==='estimator'?'estimator':'manual',everydayBreakdown:x.everydayBreakdown&&typeof x.everydayBreakdown==='object'?{groceries:n(x.everydayBreakdown.groceries),gasTransit:n(x.everydayBreakdown.gasTransit),dining:n(x.everydayBreakdown.dining),personalHousehold:n(x.everydayBreakdown.personalHousehold),other:n(x.everydayBreakdown.other)}:null,goalType:String(x.goalType||''),goalName:String(x.goalName||''),goalAmount:n(x.goalAmount),savePerPaycheck:n(x.savePerPaycheck),savePace:['easy','balanced','push','custom','none'].includes(x.savePace)?x.savePace:'balanced',s2sBalance:x.s2sBalance===null||x.s2sBalance===undefined?null:n(x.s2sBalance),s2sActivity:Array.isArray(x.s2sActivity)?x.s2sActivity.slice(0,50):[],prePaydayAdjustments:Array.isArray(x.prePaydayAdjustments)?x.prePaydayAdjustments.slice(0,50):[],payDays:Array.isArray(x.payDays)&&x.payDays.length===2?x.payDays:['15','last']};}
 function loadState(storage){if(!storage)return defaultState();let raw=null;try{raw=JSON.parse(storage.getItem(STORAGE_KEY)||'null')}catch(e){try{storage.removeItem(STORAGE_KEY)}catch(_){ }return defaultState()}if(!raw)return defaultState();const s=migrateState(raw);if(!s.onboardingComplete){try{storage.removeItem(STORAGE_KEY)}catch(_){ }return defaultState()}return s;}
 function saveState(storage,state){const s=migrateState(state);s.onboardingComplete=!!state.onboardingComplete;s.updatedAt=new Date().toISOString();const errs=validateState(s);if(errs.length)throw new Error('State invariant failed: '+errs.join('; '));if(storage&&s.onboardingComplete)storage.setItem(STORAGE_KEY,JSON.stringify(s));return s;}
 function advanceDate(date,freq){const d=new Date(date);d.setHours(12,0,0,0);if(freq==='weekly')d.setDate(d.getDate()+7);else if(freq==='biweekly')d.setDate(d.getDate()+14);else if(freq==='quarterly')d.setMonth(d.getMonth()+3);else if(freq==='yearly')d.setFullYear(d.getFullYear()+1);else d.setMonth(d.getMonth()+1);return d;}
@@ -17,6 +17,42 @@ function nextPayDates(state,count=12,from=today()){let out=[];let d=parseDate(st
  while(d<from)d=advanceDate(d,f);for(let i=0;i<count;i++){out.push(new Date(d));d=advanceDate(d,f)}return out;}
 function nextBillDue(bill,from){let d=parseDate(bill.nextDue);if(!d)return null;while(d<from)d=advanceDate(d,bill.freq||'monthly');return d;}
 function billFundingForPaycheck(state,payDate){const pd=new Date(payDate);pd.setHours(12,0,0,0);const details=[];for(const b of state.bills||[]){const due=nextBillDue(b,pd);if(!due)continue;const pays=nextPayDates(state,60,pd).filter(x=>x<=due);const count=Math.max(1,pays.length);const amount=n(b.amount)/count;details.push({id:b.id,name:b.name,amount,due:iso(due),billAmount:n(b.amount),paychecksRemaining:count});}return {details,total:details.reduce((s,x)=>s+x.amount,0)};}
+function paychecksPerYear(state){const f=state.payFreq||'weekly';return f==='weekly'?52:f==='biweekly'?26:f==='semimonthly'?24:12;}
+function savingsCapacityAcrossUpcomingPaychecks(state,from=today(),count=6){
+ const dates=nextPayDates(state,count,from);
+ const currentDate=dates[0];
+ const currentFunding=currentDate?billFundingForPaycheck(state,currentDate).total:0;
+ const current=Math.max(0,n(state.paycheck)-currentFunding-n(state.everydayAmount));
+ if(!dates.length)return current;
+ const caps=dates.map(pd=>Math.max(0,n(state.paycheck)-billFundingForPaycheck(state,pd).total-n(state.everydayAmount))).sort((a,b)=>a-b);
+ const positive=caps.filter(v=>v>0);
+ if(!positive.length)return current;
+ const idx=Math.floor((positive.length-1)*0.25);
+ return Math.max(0,Math.min(current,positive[idx]));
+}
+function getSavingsPaces(state,from=today()){
+ const pd=nextPayDates(state,1,from)[0],funding=pd?billFundingForPaycheck(state,pd):{total:0,details:[]};
+ const available=Math.max(0,n(state.paycheck)-funding.total-n(state.everydayAmount));
+ const guarded=savingsCapacityAcrossUpcomingPaychecks(state,from,6);
+ const round5=v=>Math.round(Math.max(0,v)/5)*5;
+ if(available<=0)return {comfortable:0,balanced:0,faster:0,available:0,guarded:0,funding};
+ const stress=guarded>0?guarded:available;
+ let comfortable=round5(Math.min(available*.20,Math.max(available*.10,stress*.35)));
+ let balanced=round5(Math.min(available*.35,Math.max(comfortable,stress*.60)));
+ let faster=round5(Math.min(available*.55,Math.max(balanced,stress*.85)));
+ if(comfortable===0&&available>=5)comfortable=5;
+ balanced=Math.max(comfortable,balanced);faster=Math.max(balanced,faster);
+ return {comfortable,balanced,faster,available,guarded,funding};
+}
+function getSavingsProjection(state,contribution=n(state.savePerPaycheck),from=today()){
+ const perPay=n(contribution),annual=perPay*paychecksPerYear(state),goal=n(state.goalAmount),current=n(state.savings);
+ if(!goal||current>=goal||!perPay)return {annual,checksToGoal:0,etaDate:null,remaining:Math.max(0,goal-current)};
+ const remaining=Math.max(0,goal-current),checks=Math.ceil(remaining/perPay),dates=nextPayDates(state,Math.max(checks,1),from);
+ return {annual,checksToGoal:checks,etaDate:dates[checks-1]?iso(dates[checks-1]):null,remaining};
+}
+function capCustomSavings(state,amount,from=today()){
+ const p=getSavingsPaces(state,from);return Math.min(n(amount),p.available);
+}
 function projectedAdjustmentForPayday(state,pd){const key=iso(pd);return (state.prePaydayAdjustments||[]).filter(x=>x.payday===key).reduce((sum,x)=>sum+n(x.amount),0)}
 function calculateNextPaycheck(state,from=today()){const pd=nextPayDates(state,1,from)[0];if(!pd)return {date:null,income:0,billReserve:0,billDetails:[],everyday:0,savingsTransfer:0,prePaydayAdjustment:0,projectedSafe2Spend:0};const funding=billFundingForPaycheck(state,pd),income=n(state.paycheck),everyday=Math.min(n(state.everydayAmount),Math.max(0,income-funding.total)),savingsTransfer=Math.min(n(state.savePerPaycheck),Math.max(0,income-funding.total-everyday)),adj=projectedAdjustmentForPayday(state,pd),projected=Math.max(0,income-funding.total-everyday-savingsTransfer-adj);return {date:iso(pd),income,billReserve:funding.total,billDetails:funding.details,everyday,savingsTransfer,prePaydayAdjustment:adj,projectedSafe2Spend:projected};}
 function suggestedCurrentSafe(state,from=today()){const available=n(state.checking)+n(state.cash),next=calculateNextPaycheck(state,from),required=next.billReserve+next.everyday+next.savingsTransfer;return Math.max(0,available-required);}
@@ -46,5 +82,5 @@ function runInvariantTests(){const results=[];const test=(name,fn)=>{try{fn();re
  test('Payday posts once',()=>{const pd=new Date(2026,8,10,12);let a=processPayday(base,pd);if(!a.processed)throw new Error('first payday not processed');const bal=calculateCurrent(a.state,pd).availableBalance;let b=processPayday(a.state,pd);if(b.processed)throw new Error('second payday processed');eq(calculateCurrent(b.state,pd).availableBalance,bal,'double post')});
  test('No render-time anchor mutation required',()=>{const a=JSON.stringify(base),p=calculatePlan(base,now);if(JSON.stringify(base)!==a)throw new Error('calculatePlan mutated state');if(!p.current)throw new Error('missing current')});
  return {pass:results.every(x=>x.pass),results};}
-return {VERSION,STORAGE_KEY,n,iso,parseDate,addDays,today,defaultState,migrateState,loadState,saveState,nextPayDates,billFundingForPaycheck,calculateCurrent,calculateNextPaycheck,calculatePlan,deriveZeroState,suggestedCurrentSafe,currentProtectionGap,spend,saveFromSafe,moneyIn,prePaydayCapacity,spendBeforePayday,processPayday,reanchor,validateState,runInvariantTests};
+return {VERSION,STORAGE_KEY,n,iso,parseDate,addDays,today,defaultState,migrateState,loadState,saveState,nextPayDates,billFundingForPaycheck,paychecksPerYear,savingsCapacityAcrossUpcomingPaychecks,getSavingsPaces,getSavingsProjection,capCustomSavings,calculateCurrent,calculateNextPaycheck,calculatePlan,deriveZeroState,suggestedCurrentSafe,currentProtectionGap,spend,saveFromSafe,moneyIn,prePaydayCapacity,spendBeforePayday,processPayday,reanchor,validateState,runInvariantTests};
 });
