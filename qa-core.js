@@ -12,9 +12,31 @@ let pre=C.spendBeforePayday(s,40,'Gas',now);const prePlan=C.calculatePlan(pre,no
 const fully={...s,paycheck:100,bills:[{id:'x',name:'Bill',amount:100,nextDue:'2026-09-10',freq:'monthly'}],everydayAmount:0,savePerPaycheck:0,s2sBalance:0};ok('Fully allocated zero state is explicit in engine',C.calculatePlan(fully,now).zeroState==='fully_allocated');
 const exhausted={...s,s2sBalance:0,lastS2SReason:'spent_to_zero'};ok('Exhausted zero state is explicit in engine',C.calculatePlan(exhausted,now).zeroState==='exhausted');
 const sameOriginStore=mem();C.saveState(sameOriginStore,s);ok('Storage is path-independent on same origin by design',C.loadState(sameOriginStore).onboardingComplete===true);
+
+const semimonthly={...C.defaultState(),onboardingComplete:true,payFreq:'semimonthly',payDays:['15','last'],nextPayday:'2026-09-15',paycheck:1500};
+const semiDates=C.nextPayDates(semimonthly,4,new Date(2026,8,10,12)).map(C.iso);
+ok('Semimonthly schedule preserves two real monthly paydays',JSON.stringify(semiDates)===JSON.stringify(['2026-09-15','2026-09-30','2026-10-15','2026-10-31']),semiDates.join(','));
+const febDates=C.nextPayDates({...semimonthly,nextPayday:'2027-02-15'},2,new Date(2027,1,1,12)).map(C.iso);
+ok('Semimonthly last-day logic clamps February correctly',JSON.stringify(febDates)===JSON.stringify(['2027-02-15','2027-02-28']),febDates.join(','));
+const pacesState={...C.defaultState(),onboardingComplete:true,checking:1000,payFreq:'weekly',nextPayday:'2026-09-10',paycheck:1500,bills:[{id:'rent',name:'Rent',amount:1000,nextDue:'2026-09-30',freq:'monthly'}],everydayAmount:200};
+const paces=C.getSavingsPaces(pacesState,now);
+ok('Savings paces are monotonic',paces.comfortable<=paces.balanced&&paces.balanced<=paces.faster,JSON.stringify(paces));
+ok('Savings recommendations never exceed post-essential capacity',paces.faster<=paces.available+.02,JSON.stringify(paces));
+ok('Balanced savings recommendation is available for flexible paycheck',paces.balanced>0,JSON.stringify(paces));
+const capped=C.capCustomSavings(pacesState,paces.available+999,now);
+ok('Custom savings is capped at current post-essential capacity',eq(capped,paces.available),capped+' vs '+paces.available);
+const proj=C.getSavingsProjection({...pacesState,savings:1000,goalAmount:2200,savePerPaycheck:100},100,now);
+ok('Savings projection calculates checks to goal',proj.checksToGoal===12,JSON.stringify(proj));
+ok('Savings projection returns ETA date',!!proj.etaDate,JSON.stringify(proj));
+const migrated=C.migrateState({onboardingComplete:true,payFreq:'weekly',nextPayday:'2026-09-10',paycheck:1000,everydayInput:{amount:150},goalType:'Vehicle',savePace:'push',life:{food:50,gas:50,other:50},everydayBreakdown:{groceries:40,gasTransit:30,dining:20,personalHousehold:10,other:50},everydaySource:'estimator'});
+ok('Migration preserves goal type',migrated.goalType==='Vehicle');
+ok('Migration preserves savings pace',migrated.savePace==='push');
+ok('Migration preserves everyday source',migrated.everydaySource==='estimator');
+ok('Migration preserves everyday amount',eq(migrated.everydayAmount,150));
+
 const html=fs.readFileSync('./canonical-app.html','utf8');ok('Header reports MVP 1.6',html.includes('MVP 1.6 · Dev'));ok('Canonical app has no iframe runtime',!/<iframe\b/i.test(html));ok('Canonical app does not load legacy wrapper',!html.includes('mvp16-v2.html')&&!html.includes('mvp16-zero-state-v2.js')&&!html.includes('mvp16-qa-fixes.js')&&!html.includes('mvp16-integrity.js'));ok('Canonical app loads one financial core',html.includes('src="s2s-core.js"'));ok('Zero-state UI distinguishes positive, between, exhausted and fallback fully allocated',html.includes("if(z==='positive')")&&html.includes("if(z==='between')")&&html.includes("else if(z==='exhausted')")&&html.includes('Your current balance and next paycheck already have important jobs lined up.'));ok('Generic zero-dollar pacing copy cannot render in zero state',html.includes("if(z==='positive')")&&html.includes("$('heroPace').classList.add('hide')"));ok('No render-time anchor reset remains',!html.includes('s2sAnchor=null')&&!html.includes('s2sAnchor = null'));ok('Projected Safe2Spend is labeled projected',html.includes('Projected Safe2Spend'));ok('Current Home is labeled right now',html.includes('SAFE2SPEND RIGHT NOW'));
 const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);const dupes=ids.filter((x,i)=>ids.indexOf(x)!==i);ok('DOM IDs are unique',dupes.length===0,[...new Set(dupes)].join(','));
 const inline=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).filter(x=>x.trim());let syntax=true,syntaxErr='';try{inline.forEach(code=>new Function(code))}catch(e){syntax=false;syntaxErr=e.message}ok('Canonical inline JavaScript compiles',syntax,syntaxErr);
 const handlerCalls=[...html.matchAll(/on(?:click|input|change)="([a-zA-Z_$][\w$]*)\s*\(/g)].map(m=>m[1]).filter(x=>x!=='$');const defined=new Set([...inline.join('\n').matchAll(/function\s+([a-zA-Z_$][\w$]*)\s*\(/g)].map(m=>m[1]));const missing=[...new Set(handlerCalls.filter(x=>!defined.has(x)&&x!=='confirm'))];ok('All inline handlers resolve to defined functions',missing.length===0,missing.join(','));
 const core=fs.readFileSync('./s2s-core.js','utf8');ok('Explicit current output exists',core.includes('availableBalance')&&core.includes('accountedFor')&&core.includes('safe2Spend')&&core.includes('savingsBalance'));ok('Explicit next paycheck output exists',core.includes('billReserve')&&core.includes('savingsTransfer')&&core.includes('projectedSafe2Spend'));ok('Canonical lifecycle functions exist',core.includes('function loadState')&&core.includes('function migrateState')&&core.includes('function saveState')&&core.includes('function calculatePlan'));
-if(failed){console.error(`\nQA FAILED: ${failed} test(s)`);process.exit(1)}console.log(`\nQA PASS: ${built.results.length+28} checks passed`);
+if(failed){console.error(`\nQA FAILED: ${failed} test(s)`);process.exit(1)}console.log(`\nQA PASS: ${built.results.length+40} checks passed`);
